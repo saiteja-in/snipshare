@@ -31,7 +31,7 @@ export default auth((req) => {
 
   // }
   // return;
-  if (!isLoggedIn && !isPublicRoute) {
+  if (!isLoggedIn && isProtectedRoute) {
     return Response.redirect(new URL("/auth/login", nextUrl));
   }
   return;

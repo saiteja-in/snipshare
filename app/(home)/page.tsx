@@ -7,7 +7,6 @@ const Home = async () => {
 
   return (
     <div className="">
-      <NavBar />
       
     </div>
   );

@@ -8,6 +8,10 @@ export const publicRoutes = [
 ];
 export const protectedRoutes = [
   "/settings",
+  "/snippets/create",
+  "/snippets/my",
+  "/profile",
+  "/bookmarks",
 ];
 
 /**
