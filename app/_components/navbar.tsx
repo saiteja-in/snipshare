@@ -33,7 +33,7 @@ const NavBar = async () => {
               <div className="absolute -inset-1 animate-pulse rounded-full bg-yellow-500/20 group-hover:bg-yellow-400/30" />
             </div>
             <span className="hidden bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent md:block">
-              APP
+              Snipshare
             </span>
           </Link>
 
