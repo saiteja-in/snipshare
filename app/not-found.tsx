@@ -1,7 +1,10 @@
 import Link from "next/link";
+import NavBar from "./_components/navbar";
 
 export default function NotFound() {
   return (
+    <>
+    <NavBar/>
     <div className="flex items-center justify-center w-full h-screen fixed inset-0 ">
       <div className="w-full max-w-md space-y-6 text-center px-4">
         <div className="space-y-3">
@@ -16,5 +19,6 @@ export default function NotFound() {
         </Link>
       </div>
     </div>
+          </>
   );
 }

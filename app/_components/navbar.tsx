@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Lightbulb, User, LogOut } from "lucide-react";
+import { LayoutDashboard, Lightbulb, User, LogOut, Plus, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/login-button";
 import { currentUser } from "@/lib/auth";
@@ -16,9 +16,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "./ModeToggle";
+import { ExtendedUser } from "@/schemas";
 
 const NavBar = async () => {
-  const user = await currentUser();
+  const user = (await currentUser()) as ExtendedUser | undefined;
 
   return (
     <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,6 +53,26 @@ const NavBar = async () => {
         </div>
 
         <div className="flex items-center gap-4">
+        {user && (
+          <Button
+  variant="outline"
+  className="aspect-square gap-2 max-sm:p-0"
+  asChild
+>
+  <div className="flex items-center gap-2 group">
+    <PlusIcon
+      className="opacity-60 sm:-ms-1 transform transition-transform duration-300 group-hover:rotate-180"
+      size={16}
+      aria-hidden="true"
+    />
+    <Link href="/snippets/create" className="font-medium max-sm:sr-only">
+      Create
+    </Link>
+  </div>
+</Button>
+
+)}
+
           <div className="transition-transform duration-300 hover:scale-105">
             <ModeToggle />
           </div>
