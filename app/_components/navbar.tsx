@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Lightbulb, User, LogOut, Plus, PlusIcon } from "lucide-react";
+import { LayoutDashboard, Lightbulb, User, LogOut, Plus, PlusIcon, Search, ChartBarStacked } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/login-button";
 import { currentUser } from "@/lib/auth";
@@ -17,6 +17,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "./ModeToggle";
 import { ExtendedUser } from "@/schemas";
+
+// New navItems for Browse, My Snippets, Categories
+const navItems = [
+  { href: "/snippets", label: "Browse", icon: Search },
+  { href: "/snippets/my", label: "My Snippets", requiresAuth: true, icon: Plus },
+  { href: "/categories", label: "Categories", icon: ChartBarStacked },
+];
 
 const NavBar = async () => {
   const user = (await currentUser()) as ExtendedUser | undefined;
@@ -38,45 +45,49 @@ const NavBar = async () => {
             </span>
           </Link>
 
-          <nav className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              asChild
-              className="group flex items-center gap-2 transition-all duration-300 hover:bg-primary/10"
-            >
-              <Link href="/">
-                <LayoutDashboard className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                <span className="font-medium">Dashboard</span>
-              </Link>
-            </Button>
+          <nav className="flex items-center gap-2">
+            {navItems.map((item) => (
+              (!item.requiresAuth || user) && (
+                <Button
+                  key={item.href}
+                  variant="ghost"
+                  asChild
+                  className="group flex items-center gap-2 transition-all duration-300 hover:bg-primary/10"
+                >
+                  <Link href={item.href}>
+                    <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                </Button>
+              )
+            ))}
           </nav>
         </div>
 
         <div className="flex items-center gap-4">
-        {user && (
-          <Button
-  variant="outline"
-  className="aspect-square gap-2 max-sm:p-0"
-  asChild
->
-  <div className="flex items-center gap-2 group">
-    <PlusIcon
-      className="opacity-60 sm:-ms-1 transform transition-transform duration-300 group-hover:rotate-180"
-      size={16}
-      aria-hidden="true"
-    />
-    <Link href="/snippets/create" className="font-medium max-sm:sr-only">
-      Create
-    </Link>
-  </div>
-</Button>
-
-)}
+          {user && (
+            <Button
+              variant="outline"
+              className="aspect-square gap-2 max-sm:p-0"
+              asChild
+            >
+              <div className="flex items-center gap-2 group">
+                <PlusIcon
+                  className="opacity-60 sm:-ms-1 transform transition-transform duration-300 group-hover:rotate-180"
+                  size={16}
+                  aria-hidden="true"
+                />
+                <Link href="/snippets/create" className="font-medium max-sm:sr-only">
+                  Create
+                </Link>
+              </div>
+            </Button>
+          )}
 
           <div className="transition-transform duration-300 hover:scale-105">
             <ModeToggle />
           </div>
-          
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
