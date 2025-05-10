@@ -71,16 +71,17 @@ const NavBar = async () => {
               className="aspect-square gap-2 max-sm:p-0"
               asChild
             >
-              <div className="flex items-center gap-2 group">
+                <Link
+                href="/snippets/create"
+                className="flex items-center gap-2 font-medium group max-sm:sr-only"
+                >
                 <PlusIcon
                   className="opacity-60 sm:-ms-1 transform transition-transform duration-300 group-hover:rotate-180"
                   size={16}
                   aria-hidden="true"
                 />
-                <Link href="/snippets/create" className="font-medium max-sm:sr-only">
-                  Create
+                Create
                 </Link>
-              </div>
             </Button>
           )}
 
