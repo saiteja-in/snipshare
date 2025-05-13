@@ -27,6 +27,10 @@ model User {
   role          UserRole  @default(USER)
   password      String?
   accounts      Account[]
+  snippets      Snippet[] // Added relation to snippets
+  comments      Comment[] // Added relation to comments
+  snippetLikes  Like[]    // Added relation to likes
+  bookmarks     Bookmark[] // Added relation to bookmarks
 }
 
 model Account {
@@ -47,6 +51,7 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
+
 model VerificationToken {
   id String @id @default(cuid())
   email String
@@ -55,6 +60,7 @@ model VerificationToken {
 
   @@unique([email, token])
 }
+
 model PasswordResetToken {
   id String @id @default(cuid())
   email String
@@ -63,5 +69,64 @@ model PasswordResetToken {
 
   @@unique([email, token])
 }
-//npx prisma generate
-//npx prisma db push
+
+// New Snippet model
+model Snippet {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  code        String   @db.Text
+  language    String
+  framework   String?
+  category    String
+  tags        String[]
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  views       Int      @default(0)
+
+  authorId  String
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
+}
+
+// New Comment model
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId  String
+  author    User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  snippetId String
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+}
+
+// New Like model
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippetId String
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, snippetId])
+}
+
+// New Bookmark model
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippetId String
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, snippetId])
+}

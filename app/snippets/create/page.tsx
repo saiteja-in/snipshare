@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HouseIcon, BoxIcon } from "lucide-react";
+import { CreateSnippetForm } from "@/components/create-snippet-form";
 
 const CreateSnippetPage = async () => {
   const user = (await currentUser()) as ExtendedUser | undefined;
@@ -44,7 +45,7 @@ const CreateSnippetPage = async () => {
             </ScrollArea>
 
             <TabsContent value="form" className="space-y-6">
-              //1
+             <CreateSnippetForm user={user} />
             </TabsContent>
             <TabsContent value="ai" className="min-h-[600px]">
             //2
