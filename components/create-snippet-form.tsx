@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,6 +102,22 @@ const TEMPLATES = [
   { name: "node", label: "Node.js" },
 ];
 
+// Map languages to appropriate StackBlitz templates
+const LANGUAGE_TO_TEMPLATE_MAP: Record<string, string> = {
+  "JavaScript": "javascript",
+  "TypeScript": "typescript",
+  "HTML": "html",
+  "CSS": "html", // CSS usually goes with HTML
+  "Python": "node", // Fallback to node for Python
+  "Java": "node", // Fallback to node for Java
+  "C++": "node", // Fallback to node for C++
+  "Ruby": "node", // Fallback to node for Ruby
+  "Go": "node", // Fallback to node for Go
+  "Rust": "node", // Fallback to node for Rust
+  "PHP": "node", // Fallback to node for PHP
+  "Swift": "node", // Fallback to node for Swift
+};
+
 // Function to check if formatting is supported for a language
 const isFormattingSupported = (language: string) => {
   const normalizedLanguage = language?.toLowerCase();
@@ -159,6 +175,7 @@ const getExtensionByName = (language: string): string => {
     "rust": ".rs",
     "php": ".php",
     "swift": ".swift",
+    "html": ".html",
   };
   
   return extensionMap[lowercaseLang] || ".txt";
@@ -233,9 +250,11 @@ root.render(
   </style>
 </head>
 <body>
-  ${code}
+  ${language?.toLowerCase() === "html" ? code : '<div id="app"></div>'}
 </body>
+${language?.toLowerCase() !== "html" ? `<script src="./script${extension}"></script>` : ''}
 </html>`,
+          ...(language?.toLowerCase() !== "html" ? { [`script${extension}`]: code } : {})
         };
         break;
       case "javascript":
@@ -386,6 +405,8 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
   const [stackBlitzTemplate, setStackBlitzTemplate] = useState("javascript");
   const [showStackBlitzEditor, setShowStackBlitzEditor] = useState(false);
   const [isStackBlitzDialogOpen, setIsStackBlitzDialogOpen] = useState(false);
+  const [hasEditorLoaded, setHasEditorLoaded] = useState(false);
+  const editorInitializedRef = useRef(false);
 
   const form = useForm<SnippetFormData>({
     resolver: zodResolver(CreateSnippetSchema),
@@ -417,6 +438,29 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
       }
     }
   }, [code, language, form]);
+
+  // Get the appropriate StackBlitz template when language changes
+  useEffect(() => {
+    if (language) {
+      const bestTemplate = LANGUAGE_TO_TEMPLATE_MAP[language] || "javascript";
+      setStackBlitzTemplate(bestTemplate);
+    }
+  }, [language]);
+
+  // Reset editor status when dialog closes
+  useEffect(() => {
+    if (!isStackBlitzDialogOpen) {
+      setHasEditorLoaded(false);
+      editorInitializedRef.current = false;
+    }
+  }, [isStackBlitzDialogOpen]);
+
+  // Auto-load the editor when dialog opens
+  useEffect(() => {
+    if (isStackBlitzDialogOpen && !hasEditorLoaded) {
+      loadEditor();
+    }
+  }, [isStackBlitzDialogOpen, hasEditorLoaded]);
 
   const onSubmit = async (data: SnippetFormData) => {
     try {
@@ -483,11 +527,34 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
     }
   };
 
-  const openStackBlitzEditor = () => {
+  const loadEditor = () => {
     setShowStackBlitzEditor(true);
+    setHasEditorLoaded(true);
+    
+    // Initialize editor with a slight delay to ensure DOM elements are ready
     setTimeout(() => {
       embedStackblitzProject(
         stackBlitzTemplate,
+        code,
+        language,
+        title || "Code Snippet",
+        description || "Edit your code in StackBlitz"
+      );
+      editorInitializedRef.current = true;
+    }, 200);
+  };
+
+  const handleDialogOpen = () => {
+    setIsStackBlitzDialogOpen(true);
+    // The editor will auto-load due to the useEffect hook
+  };
+
+  const handleTemplateChange = (newTemplate: string) => {
+    setStackBlitzTemplate(newTemplate);
+    // Reload the editor with the new template
+    setTimeout(() => {
+      embedStackblitzProject(
+        newTemplate,
         code,
         language,
         title || "Code Snippet",
@@ -612,7 +679,7 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
                           <Button
                             type="button"
                             className="mt-3 flex items-center justify-center gap-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white px-4 py-2"
-                            onClick={() => setIsStackBlitzDialogOpen(true)}
+                            onClick={handleDialogOpen}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -632,30 +699,32 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
                         <DialogContent className="sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
                           <DialogHeader>
                             <DialogTitle>Edit Code in StackBlitz</DialogTitle>
-                            <DialogDescription className="flex items-center space-x-4">
-                              <span>Choose a template:</span>
-                              <Select
-                                value={stackBlitzTemplate}
-                                onValueChange={setStackBlitzTemplate}
-                              >
-                                <SelectTrigger className="w-[180px]">
-                                  <SelectValue placeholder="Select Template" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TEMPLATES.map((template) => (
-                                    <SelectItem key={template.name} value={template.name}>
-                                      {template.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Button 
-                                type="button" 
-                                onClick={openStackBlitzEditor} 
-                                variant="secondary"
-                              >
-                                Reload Editor
-                              </Button>
+                            <DialogDescription className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                              <div className="flex items-center">
+                                <span className="mr-3">Template:</span>
+                                <Select
+                                  value={stackBlitzTemplate}
+                                  onValueChange={handleTemplateChange}
+                                >
+                                  <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select Template" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {TEMPLATES.map((template) => (
+                                      <SelectItem key={template.name} value={template.name}>
+                                        {template.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {language && (
+                                  <span>
+                                    Best template for {language}: {LANGUAGE_TO_TEMPLATE_MAP[language] || "javascript"}
+                                  </span>
+                                )}
+                              </div>
                             </DialogDescription>
                           </DialogHeader>
                           <div 
