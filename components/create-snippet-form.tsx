@@ -41,6 +41,14 @@ import { CreateSnippetSchema, SnippetFormData } from "@/schemas/snippet";
 import { Icons } from "./icons";
 import { useRouter } from "nextjs-toploader/app";
 import hljs from "highlight.js";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const LANGUAGES = [
   "JavaScript",
@@ -84,14 +92,14 @@ const CATEGORIES = [
 
 // Templates for StackBlitz
 const TEMPLATES = [
-  "angular-cli",
-  "create-react-app",
-  "html",
-  "javascript",
-  "polymer",
-  "typescript",
-  "vue",
-  "node",
+  { name: "angular-cli", label: "Angular" },
+  { name: "create-react-app", label: "React" },
+  { name: "html", label: "HTML" },
+  { name: "javascript", label: "JavaScript" },
+  { name: "polymer", label: "Polymer" },
+  { name: "typescript", label: "TypeScript" },
+  { name: "vue", label: "Vue" },
+  { name: "node", label: "Node.js" },
 ];
 
 // Function to check if formatting is supported for a language
@@ -156,7 +164,7 @@ const getExtensionByName = (language: string): string => {
   return extensionMap[lowercaseLang] || ".txt";
 };
 
-// Function to embed StackBlitz project
+// Function to embed StackBlitz project with improved project structure
 const embedStackblitzProject = async (
   templateName: string,
   code: string,
@@ -171,65 +179,171 @@ const embedStackblitzProject = async (
     const extension = getExtensionByName(language);
     let files: { [fileName: string]: string } = {};
     
-    // Create appropriate files based on template
+    // Create appropriate files based on template with better structure
     switch (templateName) {
       case "angular-cli":
         files = {
-          "index.html": `<div id="app"></div>`,
-          "main.ts": `console.log("Angular app")`,
-          [`main${extension}`]: `${code}`,
+          "index.html": `<div id="app">Loading Angular app...</div>`,
+          "main.ts": `import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { AppModule } from './app/app.module';
+
+platformBrowserDynamic().bootstrapModule(AppModule)
+  .catch(err => console.error(err));`,
+          [`src/app/app.component${extension}`]: code,
         };
         break;
       case "create-react-app":
         files = {
-          "index.html": `<div id="root"></div>`,
-          "index.js": `console.log("React app")`,
-          [`index${extension}`]: `${code}`,
+          "public/index.html": `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${title || "React App"}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`,
+          "src/index.js": `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`,
+          [`src/App${extension}`]: code,
         };
         break;
       case "html":
         files = {
-          "index.html": `<div>Hello, HTML!</div>`,
-          [`index${extension}`]: `${code}`,
+          "index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || "HTML Snippet"}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  ${code}
+</body>
+</html>`,
         };
         break;
       case "javascript":
         files = {
-          "index.html": `<div id="app"></div>`,
-          "index.js": `console.log("Hello, JavaScript!")`,
-          [`index${extension}`]: `${code}`,
+          "index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || "JavaScript Snippet"}</title>
+</head>
+<body>
+  <div id="app">Open the console to see the output</div>
+  <script src="./index.js"></script>
+</body>
+</html>`,
+          "index.js": code,
         };
         break;
       case "typescript":
         files = {
-          "index.html": `<div id="app"></div>`,
-          "index.ts": `console.log("Hello, TypeScript!")`,
-          [`index${extension}`]: `${code}`,
+          "index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || "TypeScript Snippet"}</title>
+</head>
+<body>
+  <div id="app">Open the console to see the output</div>
+  <script src="./index.ts"></script>
+</body>
+</html>`,
+          "index.ts": code,
         };
         break;
       case "vue":
         files = {
-          "public/index.html": `<div id="app"></div>`,
-          "src/main.js": `console.log("Hello, Vue!")`,
-          [`src/main${extension}`]: `${code}`,
+          "public/index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>${title || "Vue Snippet"}</title>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+</html>`,
+          "src/main.js": `import { createApp } from 'vue'
+import App from './App.vue'
+
+createApp(App).mount('#app')`,
+          "src/App.vue": code,
         };
         break;
       case "node":
         files = {
-          "index.js": `console.log("Hello, Node!")`,
-          [`index${extension}`]: `${code}`,
+          "index.js": code,
+          "package.json": `{
+  "name": "${title?.toLowerCase().replace(/\s+/g, '-') || "node-snippet"}",
+  "version": "1.0.0",
+  "description": "${description || "A Node.js snippet"}",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}`
         };
         break;
       case "polymer":
         files = {
-          "index.html": `<div id="app"></div>`,
-          [`index${extension}`]: `${code}`,
+          "index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || "Polymer Snippet"}</title>
+  <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.5.0/webcomponents-loader.js"></script>
+  <script type="module">
+    import { PolymerElement, html } from 'https://unpkg.com/@polymer/polymer/polymer-element.js?module';
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    ${code}
+  </script>
+</body>
+</html>`,
         };
         break;
       default:
         files = {
-          "index.html": `<div id="app"></div>`,
-          [`index${extension}`]: `${code}`,
+          "index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || "Code Snippet"}</title>
+</head>
+<body>
+  <div id="app">Code Snippet</div>
+  <script src="./script${extension}"></script>
+</body>
+</html>`,
+          [`script${extension}`]: code,
         };
     }
 
@@ -249,10 +363,11 @@ const embedStackblitzProject = async (
         },
       },
       {
-        height: 500,
+        height: 600,
         showSidebar: true,
-        openFile: `index${extension}`,
+        openFile: Object.keys(files)[Object.keys(files).length - 1], // Open the file with the code
         terminalHeight: 50,
+        hideNavigation: false,
       }
     );
   } catch (error) {
@@ -270,6 +385,7 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
   const [tagInput, setTagInput] = useState("");
   const [stackBlitzTemplate, setStackBlitzTemplate] = useState("javascript");
   const [showStackBlitzEditor, setShowStackBlitzEditor] = useState(false);
+  const [isStackBlitzDialogOpen, setIsStackBlitzDialogOpen] = useState(false);
 
   const form = useForm<SnippetFormData>({
     resolver: zodResolver(CreateSnippetSchema),
@@ -447,7 +563,6 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
                 <TabsList className="mb-2">
                   <TabsTrigger value="write">Write</TabsTrigger>
                   <TabsTrigger value="preview">Preview</TabsTrigger>
-                  {code && <TabsTrigger value="stackblitz">Edit in StackBlitz</TabsTrigger>}
                 </TabsList>
                 <TabsContent value="write">
                   <FormControl>
@@ -490,44 +605,70 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
                       </div>
                     </div>
                   </FormControl>
+                  <div className="flex w-full items-center justify-center">
+                    {code !== "" && (
+                      <Dialog open={isStackBlitzDialogOpen} onOpenChange={setIsStackBlitzDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            type="button"
+                            className="mt-3 flex items-center justify-center gap-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white px-4 py-2"
+                            onClick={() => setIsStackBlitzDialogOpen(true)}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                            </svg>
+                            Edit in StackBlitz
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+                          <DialogHeader>
+                            <DialogTitle>Edit Code in StackBlitz</DialogTitle>
+                            <DialogDescription className="flex items-center space-x-4">
+                              <span>Choose a template:</span>
+                              <Select
+                                value={stackBlitzTemplate}
+                                onValueChange={setStackBlitzTemplate}
+                              >
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="Select Template" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TEMPLATES.map((template) => (
+                                    <SelectItem key={template.name} value={template.name}>
+                                      {template.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button 
+                                type="button" 
+                                onClick={openStackBlitzEditor} 
+                                variant="secondary"
+                              >
+                                Reload Editor
+                              </Button>
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div 
+                            id="stackblitz-container" 
+                            className="w-full h-[600px] border rounded-md overflow-hidden"
+                          ></div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                 </TabsContent>
                 <TabsContent value="preview">
                   <CodePreview code={code} language={language} />
-                </TabsContent>
-                <TabsContent value="stackblitz">
-                  <div className="mb-4">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <label className="text-sm font-medium">Template:</label>
-                      <Select
-                        value={stackBlitzTemplate}
-                        onValueChange={setStackBlitzTemplate}
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select Template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TEMPLATES.map((template) => (
-                            <SelectItem key={template} value={template}>
-                              {template}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button 
-                        type="button" 
-                        onClick={openStackBlitzEditor} 
-                        variant="outline"
-                      >
-                        Open Editor
-                      </Button>
-                    </div>
-                    {showStackBlitzEditor && (
-                      <div 
-                        id="stackblitz-container" 
-                        className="w-full h-[500px] border rounded-md"
-                      ></div>
-                    )}
-                  </div>
                 </TabsContent>
               </Tabs>
               <FormDescription>

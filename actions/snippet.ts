@@ -25,16 +25,20 @@ export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>)
     // Create the snippet in the database
     const snippet = await db.snippet.create({
       data: {
-        ...validatedFields.data,
+        title: validatedFields.data.title,
+        description: validatedFields.data.description,
+        code: validatedFields.data.code,
+        language: validatedFields.data.language,
+        framework: validatedFields.data.framework || null,
+        category: validatedFields.data.category,
+        tags: validatedFields.data.tags,
+        isPublic: validatedFields.data.isPublic,
         authorId: user.id,
       },
     });
 
-    // Revalidate the appropriate paths based on visibility
+    // Revalidate the appropriate paths
     revalidatePath("/snippets");
-    if (validatedFields.data.isPublic) {
-      revalidatePath("/explore");
-    }
     
     return { 
       success: true, 
@@ -43,50 +47,5 @@ export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>)
   } catch (error) {
     console.error("Error creating snippet:", error);
     return { error: "Failed to create snippet" };
-  }
-}
-
-export async function updateSnippetVisibility(snippetId: string, isPublic: boolean) {
-  try {
-    // Get the current user
-    const user = await currentUser();
-    if (!user?.id) {
-      return { error: "Unauthorized. Please sign in." };
-    }
-    
-    // Get the snippet
-    const snippet = await db.snippet.findUnique({
-      where: { 
-        id: snippetId,
-      },
-    });
-    
-    // Check if snippet exists and user is the owner
-    if (!snippet) {
-      return { error: "Snippet not found" };
-    }
-    
-    if (snippet.authorId !== user.id) {
-      return { error: "You don't have permission to update this snippet" };
-    }
-    
-    // Update the snippet visibility
-    const updatedSnippet = await db.snippet.update({
-      where: { id: snippetId },
-      data: { isPublic },
-    });
-    
-    // Revalidate the appropriate paths
-    revalidatePath("/snippets");
-    revalidatePath(`/snippets/${snippetId}`);
-    revalidatePath("/explore");
-    
-    return {
-      success: true,
-      snippet: updatedSnippet,
-    };
-  } catch (error) {
-    console.error("Error updating snippet visibility:", error);
-    return { error: "Failed to update snippet visibility" };
   }
 }
