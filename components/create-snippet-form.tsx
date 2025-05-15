@@ -578,6 +578,7 @@ export function CreateSnippetForm({ user }: CreateSnippetFormProps) {
               <FormControl>
                 <div className="relative">
                   <Input
+                  
                     placeholder="Enter a descriptive title"
                     {...field}
                   />
