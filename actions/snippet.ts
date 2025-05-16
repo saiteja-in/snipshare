@@ -6,6 +6,7 @@ import { currentUser } from "@/lib/auth";
 import { CreateSnippetSchema } from "@/schemas/snippet";
 import { revalidatePath } from "next/cache";
 
+// Create a new snippet
 export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>) {
   try {
     // Validate the input data
@@ -47,5 +48,20 @@ export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>)
   } catch (error) {
     console.error("Error creating snippet:", error);
     return { error: "Failed to create snippet" };
+  }
+}
+
+// Get a snippet by id with author info
+export async function getSnippetById(id: string) {
+  try {
+    if (!id) return null;
+    const snippet = await db.snippet.findUnique({
+      where: { id },
+      include: { author: true },
+    });
+    return snippet;
+  } catch (error) {
+    console.error("Error fetching snippet:", error);
+    return null;
   }
 }
