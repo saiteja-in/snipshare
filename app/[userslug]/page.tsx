@@ -1,6 +1,6 @@
 import { getUserBySlug, getUserSnippets, getUserLikedSnippets } from "@/actions/snippet";
 import { UserPageClient } from "./user-page-client";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 type Props = {
   params: { userslug: string };
@@ -18,10 +18,10 @@ export default async function UserPage({ params }: Props) {
   }
   
   // Fetch user's snippets
-  const { snippets: userSnippets } = await getUserSnippets(user.id);
+  const { snippets: userSnippets, error: snippetsError } = await getUserSnippets(user.id);
   
   // Fetch user's liked snippets
-  const { snippets: likedSnippets } = await getUserLikedSnippets(user.id);
+  const { snippets: likedSnippets, error: likedError } = await getUserLikedSnippets(user.id);
   
   return (
     <UserPageClient 

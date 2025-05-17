@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { CircleX } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { SnippetCard } from "@/components/SnippetCard";
 
 // Types for our component props
 interface User {
@@ -53,25 +54,38 @@ interface UserPageClientProps {
   initialLikedSnippets: Snippet[];
 }
 
-export function UserPageClient({ user, initialSnippets, initialLikedSnippets }: UserPageClientProps) {
-   
-    
+export function UserPageClient({
+  user,
+  initialSnippets,
+  initialLikedSnippets,
+}: UserPageClientProps) {
   const [activeTab, setActiveTab] = useState<string>("snippets");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   // Filter snippets based on search query
-  const filteredSnippets = activeTab === "snippets" 
-    ? initialSnippets.filter(snippet => 
-        snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        snippet.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        snippet.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : initialLikedSnippets.filter(snippet => 
-        snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        snippet.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        snippet.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-  
+  const filteredSnippets =
+    activeTab === "snippets"
+      ? initialSnippets.filter(
+          (snippet) =>
+            snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            snippet.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            snippet.tags.some((tag) =>
+              tag.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        )
+      : initialLikedSnippets.filter(
+          (snippet) =>
+            snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            snippet.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            snippet.tags.some((tag) =>
+              tag.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        );
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1">
@@ -82,32 +96,43 @@ export function UserPageClient({ user, initialSnippets, initialLikedSnippets }: 
               <div className="flex flex-col items-center md:items-start space-y-6">
                 <Avatar className="h-[120px] w-[120px]">
                   {user.image ? (
-                    <AvatarImage src={user.image} alt={user.name || user.slug} />
+                    <AvatarImage
+                      src={user.image}
+                      alt={user.name || user.slug}
+                    />
                   ) : (
                     <AvatarFallback>
-                      {user.name ? user.name.charAt(0).toUpperCase() : user.slug.charAt(0).toUpperCase()}
+                      {user.name
+                        ? user.name.charAt(0).toUpperCase()
+                        : user.slug.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   )}
                 </Avatar>
-                
+
                 <div className="space-y-2 text-center md:text-left">
-                  <h1 className="text-3xl font-semibold tracking-tight">{user.name || user.slug}</h1>
+                  <h1 className="text-3xl font-semibold tracking-tight">
+                    {user.name || user.slug}
+                  </h1>
                   <p className="text-lg text-muted-foreground">@{user.slug}</p>
                 </div>
-                
+
                 <div className="flex items-center md:justify-start justify-center gap-4 pt-2">
                   {/* Social links can be added here if needed */}
                 </div>
               </div>
             </div>
-            
+
             {/* Main Content Area */}
             <div className="w-full md:w-[80%]">
               {/* Tabs Header */}
               <div className="flex flex-col gap-4 mb-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-4">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+                    <Tabs
+                      value={activeTab}
+                      onValueChange={setActiveTab}
+                      className="w-full md:w-auto"
+                    >
                       <TabsList className="w-full md:w-auto h-8 -space-x-px bg-background p-0 shadow-sm shadow-black/5 rtl:space-x-reverse">
                         <TabsTrigger
                           value="snippets"
@@ -134,7 +159,7 @@ export function UserPageClient({ user, initialSnippets, initialLikedSnippets }: 
                       </TabsList>
                     </Tabs>
                   </div>
-                  
+
                   {/* Search Input */}
                   <div className="flex items-center gap-2 md:w-auto min-w-0">
                     <div className="relative flex-1 min-w-0 lg:min-w-[250px] md:min-w-[100px]">
@@ -151,7 +176,11 @@ export function UserPageClient({ user, initialSnippets, initialLikedSnippets }: 
                           onClick={() => setSearchQuery("")}
                           aria-label="Clear search"
                         >
-                          <CircleX size={16} strokeWidth={2} aria-hidden="true" />
+                          <CircleX
+                            size={16}
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
                         </button>
                       ) : (
                         <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
@@ -164,47 +193,24 @@ export function UserPageClient({ user, initialSnippets, initialLikedSnippets }: 
                   </div>
                 </div>
               </div>
-              
-              {/* Snippets List */}
+
+              {/* Snippets Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {filteredSnippets.length === 0 ? (
                   <div className="col-span-full text-center py-12">
                     <p className="text-muted-foreground">
-                      {searchQuery ? `No ${activeTab} found matching "${searchQuery}"` : `No ${activeTab} found`}
+                      {searchQuery
+                        ? `No ${activeTab} found matching "${searchQuery}"`
+                        : `No ${activeTab} found`}
                     </p>
                   </div>
                 ) : (
                   filteredSnippets.map((snippet) => (
-                    <div 
-                      key={snippet.id} 
-                      className="group relative overflow-hidden rounded-lg border border-border bg-card transition-colors hover:bg-accent/40"
-                    >
-                      <Link href={`/snippets/${snippet.id}`}>
-                        <div className="p-6">
-                          <h3 className="text-lg font-semibold">{snippet.title}</h3>
-                          <p className="text-muted-foreground text-sm line-clamp-2 mt-2">
-                            {snippet.description}
-                          </p>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {snippet.tags.slice(0, 3).map((tag) => (
-                              <span 
-                                key={tag} 
-                                className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                            <span>{new Date(snippet.createdAt).toLocaleDateString()}</span>
-                            <div className="flex items-center gap-3">
-                              <span>{snippet._count.likes} likes</span>
-                              <span>{snippet._count.comments} comments</span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
+                    <SnippetCard
+                      key={snippet.id} // Added the key prop
+                      snippet={snippet}
+                      isPreview={true}
+                    />
                   ))
                 )}
               </div>
