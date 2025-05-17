@@ -195,19 +195,19 @@ export function SnippetCard({ snippet, isPreview = true }: SnippetCardProps) {
           >
             {snippet.language}
           </Badge>
-          {snippet.framework && (
+         {/*  {snippet.framework && (
             <Badge variant="outline" className="hover:bg-muted">
               {snippet.framework}
             </Badge>
-          )}
-          {snippet.tags.slice(0, 2).map((tag: string) => (
+          )} */}
+          {snippet.tags.slice(0, 3).map((tag: string) => (
             <Badge key={tag} variant="outline" className="hover:bg-muted">
               {tag}
             </Badge>
           ))}
-          {snippet.tags.length > 2 && (
+          {snippet.tags.length > 3 && (
             <Badge variant="outline" className="hover:bg-muted">
-              +{snippet.tags.length - 2} more
+              +{snippet.tags.length - 3} more
             </Badge>
           )}
         </div>
@@ -225,9 +225,17 @@ export function SnippetCard({ snippet, isPreview = true }: SnippetCardProps) {
                         src={snippet.author.image || ""}
                         alt={snippet.author.name || ""}
                       />
-                      <AvatarFallback>
-                        {snippet.author.name?.[0]?.toUpperCase() || snippet.author.slug?.[0]?.toUpperCase()}
-                      </AvatarFallback>
+                        <AvatarFallback className="text-sm font-medium">
+  {snippet.author.name 
+    ? (snippet.author.name.split(' ').length > 1 
+        ? `${snippet.author.name.split(' ')[0][0]}${snippet.author.name.split(' ')[1][0]}`.toUpperCase()
+        : snippet.author.name[0].toUpperCase())
+    : (snippet.author.slug 
+        ? (snippet.author.slug.split('-').length > 1
+            ? `${snippet.author.slug.split('-')[0][0]}${snippet.author.slug.split('-')[1][0]}`.toUpperCase()
+            : snippet.author.slug[0].toUpperCase())
+        : '?')}
+</AvatarFallback>
                     </Avatar>
                   </Link>
                 </TooltipTrigger>
