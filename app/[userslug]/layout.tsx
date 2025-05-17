@@ -8,7 +8,7 @@ export default async function RootLayout({
   return (
     <>
       <NavBar />
-      <div className="px-6">{children}</div>
+      <div>{children}</div>
     </>
   );
 }
