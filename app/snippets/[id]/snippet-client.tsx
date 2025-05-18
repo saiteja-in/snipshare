@@ -431,6 +431,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function SnippetClient({ snippet }: { snippet: any }) {
+  console.log("teja",snippet)
   const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
@@ -489,10 +490,22 @@ export default function SnippetClient({ snippet }: { snippet: any }) {
                   </div>
                   <span>•</span>
                   <span>
-                    {formatDistanceToNow(new Date(snippet.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </span>
+{(() => {
+  try {
+    const date = new Date(snippet.createdAt);
+    // Check if date is valid
+    if (!isNaN(date.getTime())) {
+      return formatDistanceToNow(date, {
+        addSuffix: true,
+      });
+    }
+    return 'Unknown date';
+  } catch (e) {
+    console.error("Date formatting error:", e);
+    return 'Unknown date';
+  }
+})()}
+</span>
                 </div>
               </div>
               <div className="flex items-center space-x-2">

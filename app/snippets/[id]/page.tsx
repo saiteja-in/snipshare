@@ -11,12 +11,13 @@ const SnippetPage = async ({ params }: { params: { id: string } }) => {
   }
 
   const snippet = await getSnippetById(params.id);
+  console.log("snipp",snippet)
 
   if (!snippet) return notFound();
 
   return (
     <div className="container py-6">
-      <SnippetClient snippet={snippet} />
+      <SnippetClient snippet={snippet.snippet} />
     </div>
   );
 };
