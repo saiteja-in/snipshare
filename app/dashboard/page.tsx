@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,6 @@ export const metadata = {
 export default async function DashboardPage() {
   // Get the current authenticated user
   const user = (await currentUser()) as ExtendedUser | undefined;
-  console.log("user",user)
-
 
   // Redirect to login page if no user is authenticated
   if (!user) {
@@ -35,6 +34,12 @@ export default async function DashboardPage() {
   // Filter public and private snippets
   const publicSnippets = allSnippets ? allSnippets.filter(snippet => snippet.isPublic) : [];
   const privateSnippets = allSnippets ? allSnippets.filter(snippet => !snippet.isPublic) : [];
+
+  // Count snippets in each category
+  const allCount = allSnippets?.length || 0;
+  const publicCount = publicSnippets?.length || 0;
+  const privateCount = privateSnippets?.length || 0;
+  const likedCount = likedSnippets?.length || 0;
 
   return (
     <div className="container py-8">
@@ -63,17 +68,49 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Tabs Section */}
+        {/* Badge-Style Tabs */}
         <Tabs defaultValue="all-snippets" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-8">
-            <TabsTrigger value="all-snippets">All Snippets</TabsTrigger>
-            <TabsTrigger value="public-snippets">Public</TabsTrigger>
-            <TabsTrigger value="private-snippets">Private</TabsTrigger>
-            <TabsTrigger value="liked-snippets">Liked</TabsTrigger>
+          <TabsList className="mx-auto flex w-full max-w-3xl bg-transparent">
+            <TabsTrigger
+              value="all-snippets"
+              className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
+            >
+              <Badge className="mb-1.5 min-w-5 px-1.5 py-0.5 transition-opacity group-data-[state=inactive]:opacity-50">
+                {allCount}
+              </Badge>
+              All Snippets
+            </TabsTrigger>
+            <TabsTrigger
+              value="public-snippets"
+              className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
+            >
+              <Badge variant="outline" className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-green-500/10 text-green-500 border-green-500/20 transition-opacity group-data-[state=inactive]:opacity-50">
+                {publicCount}
+              </Badge>
+              Public
+            </TabsTrigger>
+            <TabsTrigger
+              value="private-snippets"
+              className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
+            >
+              <Badge variant="outline" className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-amber-500/10 text-amber-500 border-amber-500/20 transition-opacity group-data-[state=inactive]:opacity-50">
+                {privateCount}
+              </Badge>
+              Private
+            </TabsTrigger>
+            <TabsTrigger
+              value="liked-snippets"
+              className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
+            >
+              <Badge variant="outline" className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-rose-500/10 text-rose-500 border-rose-500/20 transition-opacity group-data-[state=inactive]:opacity-50">
+                {likedCount}
+              </Badge>
+              Liked
+            </TabsTrigger>
           </TabsList>
 
           {/* All Snippets */}
-          <TabsContent value="all-snippets">
+          <TabsContent value="all-snippets" className="mt-6">
             <div className="mb-4">
               <h2 className="text-2xl font-semibold mb-2">All Snippets</h2>
               <p className="text-muted-foreground">
@@ -118,7 +155,7 @@ export default async function DashboardPage() {
           </TabsContent>
 
           {/* Public Snippets */}
-          <TabsContent value="public-snippets">
+          <TabsContent value="public-snippets" className="mt-6">
             <div className="mb-4">
               <h2 className="text-2xl font-semibold mb-2">Public Snippets</h2>
               <p className="text-muted-foreground">
@@ -147,8 +184,8 @@ export default async function DashboardPage() {
             ) : (
               <EmptyPlaceholder>
                 <EmptyPlaceholder.Icon>
-                  <div className="p-3 rounded-full bg-muted">
-                    <Plus className="h-6 w-6" />
+                  <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/20">
+                    <Plus className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
                 </EmptyPlaceholder.Icon>
                 <EmptyPlaceholder.Title>No public snippets</EmptyPlaceholder.Title>
@@ -163,7 +200,7 @@ export default async function DashboardPage() {
           </TabsContent>
 
           {/* Private Snippets */}
-          <TabsContent value="private-snippets">
+          <TabsContent value="private-snippets" className="mt-6">
             <div className="mb-4">
               <h2 className="text-2xl font-semibold mb-2">Private Snippets</h2>
               <p className="text-muted-foreground">
@@ -192,8 +229,8 @@ export default async function DashboardPage() {
             ) : (
               <EmptyPlaceholder>
                 <EmptyPlaceholder.Icon>
-                  <div className="p-3 rounded-full bg-muted">
-                    <Plus className="h-6 w-6" />
+                  <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/20">
+                    <Plus className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                   </div>
                 </EmptyPlaceholder.Icon>
                 <EmptyPlaceholder.Title>No private snippets</EmptyPlaceholder.Title>
@@ -208,7 +245,7 @@ export default async function DashboardPage() {
           </TabsContent>
 
           {/* Liked Snippets */}
-          <TabsContent value="liked-snippets">
+          <TabsContent value="liked-snippets" className="mt-6">
             <div className="mb-4">
               <h2 className="text-2xl font-semibold mb-2">Liked Snippets</h2>
               <p className="text-muted-foreground">
@@ -237,8 +274,8 @@ export default async function DashboardPage() {
             ) : (
               <EmptyPlaceholder>
                 <EmptyPlaceholder.Icon>
-                  <div className="p-3 rounded-full bg-muted">
-                    <Plus className="h-6 w-6" />
+                  <div className="p-3 rounded-full bg-rose-100 dark:bg-rose-900/20">
+                    <Plus className="h-6 w-6 text-rose-600 dark:text-rose-400" />
                   </div>
                 </EmptyPlaceholder.Icon>
                 <EmptyPlaceholder.Title>No liked snippets</EmptyPlaceholder.Title>
