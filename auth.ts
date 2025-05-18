@@ -10,24 +10,19 @@ import { UserRole } from "@prisma/client";
 // 1) Grab the vanilla PrismaAdapter and cast to any so TS won’t block us
 const prismaAdapter: any = PrismaAdapter(db);
 
-// 2) Wrap/override only the createUser method
+// 2) Wrap/override only the createUser method to inject slug
 const adapter: any = {
   ...prismaAdapter,
   createUser: async (userData: any) => {
-    // build a slug base from name or email prefix
     const base = slugify(userData.name ?? userData.email.split("@")[0]);
     let unique = base;
     let i = 1;
 
-    // loop to ensure uniqueness
     while (await db.user.findUnique({ where: { slug: unique } })) {
       unique = `${base}-${i++}`;
     }
 
-    // inject slug into the data
     const dataWithSlug = { ...userData, slug: unique };
-
-    // call the original createUser
     return prismaAdapter.createUser(dataWithSlug);
   },
 };
@@ -43,7 +38,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
     error:  "/auth/error",
   },
 
-  // you already had linkAccount — we leave it intact
   events: {
     async linkAccount({ user }) {
       await db.user.update({
@@ -60,6 +54,21 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       return !!u?.emailVerified;
     },
 
+    async jwt({ token }) {
+      if (!token.sub) return token;
+      const u = await getUserById(token.sub);
+      if (!u) return token;
+      const acct = await getAccountByUserId(u.id);
+
+      token.isOAuth = !!acct;
+      token.name    = u.name;
+      token.email   = u.email;
+      token.role    = u.role;
+      token.slug    = u.slug;            // ← include slug in token
+
+      return token;
+    },
+
     async session({ token, session }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
@@ -67,24 +76,20 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       if (token.role && session.user) {
         session.user.role = token.role as UserRole;
       }
-      if (session.user) {
-        session.user.name    = token.name    as string;
-        session.user.email   = token.email   as string;
-        session.user.isOAuth = token.isOAuth as boolean;
+      if (token.name && session.user) {
+        session.user.name = token.name as string;
       }
-      return session;
-    },
+      if (token.email && session.user) {
+        session.user.email = token.email as string;
+      }
+      if (typeof token.isOAuth === "boolean" && session.user) {
+        session.user.isOAuth = token.isOAuth;
+      }
+      if (token.slug && session.user) {
+        session.user.slug = token.slug as string;  // ← include slug in session
+      }
 
-    async jwt({ token }) {
-      if (!token.sub) return token;
-      const u = await getUserById(token.sub);
-      if (!u) return token;
-      const acct = await getAccountByUserId(u.id);
-      token.isOAuth = !!acct;
-      token.name    = u.name;
-      token.email   = u.email;
-      token.role    = u.role;
-      return token;
+      return session;
     },
   },
 });

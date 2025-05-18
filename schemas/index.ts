@@ -1,4 +1,3 @@
-import { UserRole } from "@prisma/client";
 import * as z from "zod";
 export const LoginSchema = z.object({
   email: z.string().email({
@@ -67,10 +66,11 @@ export const SettingsSchema = z
     }
   );
 
-  import { User as PrismaUser } from "@prisma/client";
-
+  import { User as PrismaUser, UserRole } from "@prisma/client";
+  
   export interface ExtendedUser extends PrismaUser {
     role: UserRole;
     isOAuth: boolean;
+    slug: string;
   }
   
