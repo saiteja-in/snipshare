@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { toggleLikeSnippet } from "@/actions/snippet";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface SnippetClientProps {
   snippet: any;
@@ -40,6 +41,7 @@ export default function SnippetClient({ snippet, userHasLiked = false }: Snippet
   const [isLiked, setIsLiked] = useState(userHasLiked);
   const [likeCount, setLikeCount] = useState(snippet._count?.likes || 0);
   const [isLikeProcessing, setIsLikeProcessing] = useState(false);
+  const [animateLike, setAnimateLike] = useState(false);
 
   // This effect runs once on component mount to sync with client-side theme
   useEffect(() => {
@@ -69,19 +71,35 @@ export default function SnippetClient({ snippet, userHasLiked = false }: Snippet
   };
 
   const handleLikeToggle = async () => {
+    // Prevent multiple rapid clicks
     if (isLikeProcessing) return;
     
     try {
       setIsLikeProcessing(true);
       
-      // Optimistically update UI
+      // Optimistic UI update - happens immediately
       const newLikeState = !isLiked;
       setIsLiked(newLikeState);
+      
+      // Add animation effect when liking
+      if (newLikeState) {
+        setAnimateLike(true);
+        setTimeout(() => setAnimateLike(false), 1000);
+      }
+      
+      // Update count immediately for responsive feel
       setLikeCount((prevCount: number) => newLikeState ? prevCount + 1 : Math.max(0, prevCount - 1));
       
-      // Make API call
+      // Subtle toast for immediate feedback
+      // toast.success(newLikeState ? "Liked!" : "Removed like", {
+      //   duration: 1500,
+      //   position: 'bottom-right'
+      // });
+      
+      // Make API call in the background
       const result = await toggleLikeSnippet(snippet.id);
       
+      // Handle API failure by reverting the UI
       if (!result.success) {
         // Revert optimistic update if API call fails
         setIsLiked(!newLikeState);
@@ -90,20 +108,22 @@ export default function SnippetClient({ snippet, userHasLiked = false }: Snippet
         return;
       }
       
-      // Show success toast
-      toast.success(newLikeState ? "Added to your likes" : "Removed from your likes");
+      // No need for additional UI updates on success since we already did them optimistically
       
-      // Refresh the page to get updated counts
-      router.refresh();
+      // Refresh the page data in the background for consistency
+      // Adding a small delay to ensure UI animations complete first
+      setTimeout(() => router.refresh(), 300);
+      
     } catch (error) {
       console.error("Error toggling like:", error);
-      toast.error("Something went wrong. Please try again.");
       
       // Revert optimistic update on error
       setIsLiked(!isLiked);
       setLikeCount((prevCount: number) => (isLiked ? prevCount + 1 : Math.max(0, prevCount - 1)));
+      toast.error("Something went wrong. Please try again.");
     } finally {
-      setIsLikeProcessing(false);
+      // Short delay before allowing another like action for better UX
+      setTimeout(() => setIsLikeProcessing(false), 300);
     }
   };
 
@@ -162,19 +182,39 @@ export default function SnippetClient({ snippet, userHasLiked = false }: Snippet
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                {/* Like Button - Added new button */}
+                {/* Enhanced Like Button with Animation */}
                 <Button 
                   variant={isLiked ? "default" : "outline"} 
                   size="sm" 
                   onClick={handleLikeToggle}
-                  className={isLiked ? "bg-rose-600 hover:bg-rose-700" : ""}
+                  className={cn(
+                    isLiked ? "bg-rose-600 hover:bg-rose-700" : "",
+                    "relative overflow-hidden transition-all",
+                    animateLike && "animate-pulse"
+                  )}
                   disabled={isLikeProcessing}
                 >
                   <Heart 
-                    className={`mr-1 h-4 w-4 ${isLiked ? "fill-white" : ""}`} 
+                    className={cn(
+                      "mr-1 h-4 w-4 transition-all duration-300",
+                      isLiked ? "fill-white" : "",
+                      animateLike && "scale-125"
+                    )} 
                     strokeWidth={isLiked ? 0 : 2} 
                   />
-                  {likeCount > 0 && likeCount}
+                  <span className={cn(
+                    "transition-all duration-300",
+                    animateLike && "font-semibold"
+                  )}>
+                    {likeCount > 0 && likeCount}
+                  </span>
+                  
+                  {/* Visual feedback ripple effect when clicked */}
+                  {animateLike && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="animate-ping absolute h-full w-full rounded-full bg-rose-400 opacity-30"></span>
+                    </span>
+                  )}
                 </Button>
                 
                 <Button variant="outline" size="sm" onClick={shareSnippet}>
