@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Copy, Check, Share2 } from "lucide-react";
+import { Copy, Check, Share2, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -20,19 +20,36 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { toggleLikeSnippet } from "@/actions/snippet";
+import { useRouter } from "next/navigation";
 
-export default function SnippetClient({ snippet }: { snippet: any }) {
-  console.log("teja", snippet);
+interface SnippetClientProps {
+  snippet: any;
+  userHasLiked?: boolean;
+}
+
+export default function SnippetClient({ snippet, userHasLiked = false }: SnippetClientProps) {
+  const router = useRouter();
   const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  
+  // Track like state locally for immediate UI feedback
+  const [isLiked, setIsLiked] = useState(userHasLiked);
+  const [likeCount, setLikeCount] = useState(snippet._count?.likes || 0);
+  const [isLikeProcessing, setIsLikeProcessing] = useState(false);
 
   // This effect runs once on component mount to sync with client-side theme
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Initialize like state from props
+  useEffect(() => {
+    setIsLiked(userHasLiked);
+  }, [userHasLiked]);
 
   const copyCode = () => {
     if (!snippet?.code) return;
@@ -49,6 +66,45 @@ export default function SnippetClient({ snippet }: { snippet: any }) {
     setLinkCopied(true);
     toast.success("Link copied to clipboard!");
     setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleLikeToggle = async () => {
+    if (isLikeProcessing) return;
+    
+    try {
+      setIsLikeProcessing(true);
+      
+      // Optimistically update UI
+      const newLikeState = !isLiked;
+      setIsLiked(newLikeState);
+      setLikeCount((prevCount: number) => newLikeState ? prevCount + 1 : Math.max(0, prevCount - 1));
+      
+      // Make API call
+      const result = await toggleLikeSnippet(snippet.id);
+      
+      if (!result.success) {
+        // Revert optimistic update if API call fails
+        setIsLiked(!newLikeState);
+        setLikeCount((prevCount: number) => !newLikeState ? prevCount + 1 : Math.max(0, prevCount - 1));
+        toast.error(result.error || "Failed to update like");
+        return;
+      }
+      
+      // Show success toast
+      toast.success(newLikeState ? "Added to your likes" : "Removed from your likes");
+      
+      // Refresh the page to get updated counts
+      router.refresh();
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast.error("Something went wrong. Please try again.");
+      
+      // Revert optimistic update on error
+      setIsLiked(!isLiked);
+      setLikeCount((prevCount: number) => (isLiked ? prevCount + 1 : Math.max(0, prevCount - 1)));
+    } finally {
+      setIsLikeProcessing(false);
+    }
   };
 
   // Detect theme on client-side to ensure correct syntax highlighting
@@ -106,6 +162,21 @@ export default function SnippetClient({ snippet }: { snippet: any }) {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
+                {/* Like Button - Added new button */}
+                <Button 
+                  variant={isLiked ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={handleLikeToggle}
+                  className={isLiked ? "bg-rose-600 hover:bg-rose-700" : ""}
+                  disabled={isLikeProcessing}
+                >
+                  <Heart 
+                    className={`mr-1 h-4 w-4 ${isLiked ? "fill-white" : ""}`} 
+                    strokeWidth={isLiked ? 0 : 2} 
+                  />
+                  {likeCount > 0 && likeCount}
+                </Button>
+                
                 <Button variant="outline" size="sm" onClick={shareSnippet}>
                   <Share2 className="mr-2 h-4 w-4" />
                   Share

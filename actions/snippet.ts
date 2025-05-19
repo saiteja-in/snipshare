@@ -52,6 +52,123 @@ export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>)
   }
 }
 
+export async function hasUserLikedSnippet(snippetId: string) {
+  try {
+    // Get the current user
+    const user = await currentUser();
+    if (!user?.id) {
+      return { hasLiked: false, error: "User not authenticated" };
+    }
+
+    // Check if like exists
+    const like = await db.like.findUnique({
+      where: {
+        userId_snippetId: {
+          userId: user.id,
+          snippetId,
+        },
+      },
+    });
+
+    return { hasLiked: !!like, success: true };
+  } catch (error) {
+    console.error("Error checking if user liked snippet:", error);
+    return { hasLiked: false, error: "Failed to check like status" };
+  }
+}
+
+// Toggle like on a snippet
+export async function toggleLikeSnippet(snippetId: string) {
+  try {
+    if (!snippetId) {
+      return { error: "Snippet ID is required." };
+    }
+
+    // Get the current user
+    const user = await currentUser();
+    if (!user?.id) {
+      return { error: "Unauthorized. Please sign in." };
+    }
+
+    // Check if the snippet exists
+    const snippet = await db.snippet.findUnique({
+      where: { id: snippetId },
+      select: { id: true },
+    });
+
+    if (!snippet) {
+      return { error: "Snippet not found." };
+    }
+
+    // Check if the user has already liked this snippet
+    const existingLike = await db.like.findUnique({
+      where: {
+        userId_snippetId: {
+          userId: user.id,
+          snippetId,
+        },
+      },
+    });
+
+    let action: 'liked' | 'unliked';
+
+    if (existingLike) {
+      // If like exists, remove it (unlike)
+      await db.like.delete({
+        where: {
+          userId_snippetId: {
+            userId: user.id,
+            snippetId,
+          },
+        },
+      });
+      action = 'unliked';
+    } else {
+      // If like doesn't exist, create it (like)
+      await db.like.create({
+        data: {
+          userId: user.id,
+          snippetId,
+        },
+      });
+      action = 'liked';
+    }
+
+    // Revalidate paths to update like counts
+    revalidatePath(`/snippets/${snippetId}`);
+    revalidatePath(`/dashboard`);
+    revalidatePath(`/${user.slug}`);
+    revalidatePath('/explore');
+    
+    return { 
+      success: true,
+      action
+    };
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    return { error: "Failed to toggle like" };
+  }
+}
+
+// Get like count for a snippet
+export async function getSnippetLikesCount(snippetId: string) {
+  try {
+    if (!snippetId) {
+      return { error: "Snippet ID is required", count: 0 };
+    }
+
+    const count = await db.like.count({
+      where: {
+        snippetId,
+      },
+    });
+
+    return { success: true, count };
+  } catch (error) {
+    console.error("Error getting like count:", error);
+    return { error: "Failed to get like count", count: 0 };
+  }
+}
 // Get a snippet by id with author info
 export async function getSnippetById(id: string) {
   try {
@@ -59,7 +176,7 @@ export async function getSnippetById(id: string) {
       return { error: "Snippet ID is required" };
     }
 
-    const user = await currentUser();
+    const user = (await currentUser()) as ExtendedUser | undefined;
     if (!user) {
       return { error: "Unauthorized. Please sign in." };
     }
@@ -91,26 +208,28 @@ export async function getSnippetById(id: string) {
       return { error: "Snippet not found", snippet: null };
     }
 
-    // Add a debug log to see what's happening
-    console.log("Fetched snippet:", {
-      id: snippet.id,
-      authorId: snippet.authorId,
-      currentUserId: user.id,
-      isAuthorized: snippet.authorId === user.id || snippet.isPublic
-    });
-
     // Check if user is authorized to view this snippet
-    // Users can only view private snippets if they are the author
     if (!snippet.isPublic && snippet.authorId !== user.id) {
       return { error: "You do not have permission to view this snippet", snippet: null };
     }
 
-    // Ensure we return the snippet with all necessary properties
+    // Check if the current user has liked this snippet
+    const userLike = await db.like.findUnique({
+      where: {
+        userId_snippetId: {
+          userId: user.id,
+          snippetId: id,
+        },
+      },
+    });
+
+    // Ensure we return the snippet with all necessary properties including userHasLiked
     return { 
       success: true, 
       snippet: {
         ...snippet,
         authorId: snippet.authorId, // Ensure authorId is included
+        userHasLiked: !!userLike, // Add boolean indicating if user has liked
       } 
     };
   } catch (error) {

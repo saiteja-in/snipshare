@@ -10,14 +10,17 @@ const SnippetPage = async ({ params }: { params: { id: string } }) => {
     redirect("/auth/login?callbackUrl=/snippets");
   }
 
-  const snippet = await getSnippetById(params.id);
-  console.log("snipp",snippet)
+  const result = await getSnippetById(params.id);
+  console.log("snipp", result);
 
-  if (!snippet) return notFound();
+  if (!result || !result.snippet) return notFound();
 
   return (
     <div className="container py-6">
-      <SnippetClient snippet={snippet.snippet} />
+      <SnippetClient 
+        snippet={result.snippet} 
+        userHasLiked={result.snippet.userHasLiked || false} 
+      />
     </div>
   );
 };
