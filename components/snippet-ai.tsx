@@ -69,7 +69,7 @@ export function SnippetAI({ onSnippetGenerated }: SnippetAIProps) {
 
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/ai/generate-snippet", {
+      const response = await fetch("/api/generate-snippet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
