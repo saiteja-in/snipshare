@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
-  oneDark,
-  oneLight,
+  nightOwl,
+  gruvboxLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodePreviewProps {
@@ -44,7 +44,7 @@ export function CodePreview({ code, language }: CodePreviewProps) {
       <div className="overflow-x-auto p-4">
         <SyntaxHighlighter
           language={language?.toLowerCase() || "plaintext"}
-          style={theme === "dark" ? oneDark : oneLight}
+          style={theme === "dark" ? nightOwl : gruvboxLight}
           customStyle={{
             margin: 0,
             background: "transparent",

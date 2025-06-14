@@ -45,7 +45,7 @@ const EXAMPLE_PROMPTS = [
   },
 ];
 
-interface SnippetAIAssistantProps {
+interface SnippetAIProps {
   onSnippetGenerated: (snippet: {
     title: string;
     description: string;
@@ -57,9 +57,7 @@ interface SnippetAIAssistantProps {
   }) => void;
 }
 
-export function SnippetAI({
-  onSnippetGenerated,
-}: SnippetAIAssistantProps) {
+export function SnippetAI({ onSnippetGenerated }: SnippetAIProps) {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -85,7 +83,7 @@ export function SnippetAI({
 
       const data = await response.json();
       onSnippetGenerated(data);
-      toast.success("Snippet generated successfully!");
+      toast.success("Snippet generated successfully! Switching to form view...");
     } catch (error) {
       console.error("Error generating snippet:", error);
       toast.error("Failed to generate snippet. Please try again.");
