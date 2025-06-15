@@ -99,7 +99,6 @@ export function CreateSnippetForm({ user, aiGeneratedData }: CreateSnippetFormPr
   // Handle AI generated data
   useEffect(() => {
     if (aiGeneratedData) {
-      // Populate form with AI generated data
       if (aiGeneratedData.title) form.setValue("title", aiGeneratedData.title);
       if (aiGeneratedData.description) form.setValue("description", aiGeneratedData.description);
       if (aiGeneratedData.code) form.setValue("code", aiGeneratedData.code);
@@ -437,7 +436,11 @@ export function CreateSnippetForm({ user, aiGeneratedData }: CreateSnippetFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Language</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  key={field.value}
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a language" />
@@ -464,6 +467,7 @@ export function CreateSnippetForm({ user, aiGeneratedData }: CreateSnippetFormPr
               <FormItem>
                 <FormLabel>Framework (Optional)</FormLabel>
                 <Select
+                  key={field.value}
                   onValueChange={field.onChange}
                   value={field.value || ""}
                 >
@@ -495,7 +499,11 @@ export function CreateSnippetForm({ user, aiGeneratedData }: CreateSnippetFormPr
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                key={field.value}
+                onValueChange={field.onChange}
+                value={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
