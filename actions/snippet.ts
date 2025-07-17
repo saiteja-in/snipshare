@@ -472,4 +472,109 @@ export async function deleteSnippet(id: string) {
 
 
 
+// Get all public snippets with filters
+export async function getPublicSnippets(filters?: {
+  language?: string;
+  framework?: string;
+  category?: string;
+  search?: string;
+}) {
+  try {
+    const where: any = {
+      isPublic: true,
+    };
+
+    // Apply filters
+    if (filters?.language && filters.language !== "all") {
+      where.language = filters.language;
+    }
+
+    if (filters?.framework && filters.framework !== "all") {
+      where.framework = filters.framework;
+    }
+
+    if (filters?.category && filters.category !== "all") {
+      where.category = filters.category;
+    }
+
+    if (filters?.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { tags: { has: filters.search } },
+      ];
+    }
+
+    const snippets = await db.snippet.findMany({
+      where,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            slug: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            bookmarks: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return { success: true, snippets };
+  } catch (error) {
+    console.error("Error fetching public snippets:", error);
+    return { error: "Failed to fetch snippets", snippets: [] };
+  }
+}
+
+// Get unique values for filters
+export async function getFilterOptions() {
+  try {
+    const [languages, frameworks, categories] = await Promise.all([
+      db.snippet.findMany({
+        where: { isPublic: true },
+        select: { language: true },
+        distinct: ['language'],
+      }),
+      db.snippet.findMany({
+        where: { 
+          isPublic: true,
+          framework: { not: null }
+        },
+        select: { framework: true },
+        distinct: ['framework'],
+      }),
+      db.snippet.findMany({
+        where: { isPublic: true },
+        select: { category: true },
+        distinct: ['category'],
+      }),
+    ]);
+
+    return {
+      success: true,
+      options: {
+        languages: languages.map(s => s.language).filter((lang): lang is string => Boolean(lang)),
+        frameworks: frameworks.map(s => s.framework).filter((fw): fw is string => Boolean(fw)),
+        categories: categories.map(s => s.category).filter((cat): cat is string => Boolean(cat)),
+      }
+    };
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
+    return { 
+      error: "Failed to fetch filter options",
+      options: { languages: [], frameworks: [], categories: [] }
+    };
+  }
+}
+
 // Fetch a snippet by ID
