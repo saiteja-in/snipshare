@@ -48,7 +48,7 @@ export function FiltersSidebar({
   return (
     <div
       className={cn(
-        "fixed inset-y-0 left-0 z-50 w-full flex-col overflow-y-auto border-r bg-background px-6 pb-6 pt-24 shadow-lg transition-transform lg:sticky lg:top-[65px] lg:z-0 lg:h-[calc(100vh-65px)] lg:w-auto lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none",
+        "fixed inset-y-0 left-0 z-50 w-full flex-col overflow-y-auto border-r bg-background px-6 pb-6 pt-24 shadow-lg transition-transform lg:sticky lg:top-24 lg:z-0 lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:w-64 lg:border lg:bg-background lg:p-6 lg:shadow-sm lg:rounded-lg lg:self-start",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >

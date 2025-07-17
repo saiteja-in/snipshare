@@ -46,9 +46,9 @@ interface SnippetsBrowserProps {
   filterOptions: FilterOptions;
 }
 
-export function SnippetsBrowser({ 
-  initialSnippets, 
-  filterOptions 
+export function SnippetsBrowser({
+  initialSnippets,
+  filterOptions,
 }: SnippetsBrowserProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,23 +56,34 @@ export function SnippetsBrowser({
 
   // Use nuqs for URL state management
   const [search, setSearch] = useQueryState("search", { defaultValue: "" });
-  const [language, setLanguage] = useQueryState("language", { defaultValue: "all" });
-  const [framework, setFramework] = useQueryState("framework", { defaultValue: "all" });
-  const [category, setCategory] = useQueryState("category", { defaultValue: "all" });
-
+  const [language, setLanguage] = useQueryState("language", {
+    defaultValue: "all",
+  });
+  const [framework, setFramework] = useQueryState("framework", {
+    defaultValue: "all",
+  });
+  const [category, setCategory] = useQueryState("category", {
+    defaultValue: "all",
+  });
 
   // Filter snippets client-side for immediate feedback
   const filteredSnippets = snippets.filter((snippet) => {
-    const matchesSearch = !search || 
+    const matchesSearch =
+      !search ||
       snippet.title.toLowerCase().includes(search.toLowerCase()) ||
       snippet.description.toLowerCase().includes(search.toLowerCase()) ||
-      snippet.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()));
-    
+      snippet.tags.some((tag) =>
+        tag.toLowerCase().includes(search.toLowerCase())
+      );
+
     const matchesLanguage = language === "all" || snippet.language === language;
-    const matchesFramework = framework === "all" || snippet.framework === framework;
+    const matchesFramework =
+      framework === "all" || snippet.framework === framework;
     const matchesCategory = category === "all" || snippet.category === category;
 
-    return matchesSearch && matchesLanguage && matchesFramework && matchesCategory;
+    return (
+      matchesSearch && matchesLanguage && matchesFramework && matchesCategory
+    );
   });
 
   const handleReset = () => {
@@ -85,8 +96,8 @@ export function SnippetsBrowser({
   return (
     <div className="container py-6">
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Code Snippets</h1>
+        {/* <div className="flex items-center justify-between"> */}
+          {/* <h1 className="text-3xl font-bold tracking-tight">Code Snippets</h1> */}
           <Button
             variant="outline"
             className="lg:hidden"
@@ -95,9 +106,9 @@ export function SnippetsBrowser({
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-        </div>
+        {/* </div> */}
 
-        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        <div className="grid gap-6 lg:grid-cols-[280px_1fr] ">
           <FiltersSidebar
             isOpen={isOpen}
             onClose={() => setIsOpen(false)}
