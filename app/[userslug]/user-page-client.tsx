@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { CircleX } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { GeneratedAvatar } from "@/components/generated-avatar";
 import { SnippetCard } from "@/components/SnippetCard";
 
 // Types for our component props
@@ -94,20 +93,11 @@ export function UserPageClient({
             {/* User Profile Sidebar */}
             <div className="flex md:w-[20%] md:min-w-[300px] flex-col items-center w-full">
               <div className="flex flex-col items-center md:items-start space-y-6">
-                <Avatar className="h-[120px] w-[120px]">
-                  {user.image ? (
-                    <AvatarImage
-                      src={user.image}
-                      alt={user.name || user.slug}
-                    />
-                  ) : (
-                    <AvatarFallback>
-                      {user.name
-                        ? user.name.charAt(0).toUpperCase()
-                        : user.slug.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
+                <GeneratedAvatar
+                  variant="botttsNeutral"
+                  seed={user.name || user.slug}
+                  className="size-[120px]"
+                />
 
                 <div className="space-y-2 text-center md:text-left">
                   <h1 className="text-3xl font-semibold tracking-tight">
