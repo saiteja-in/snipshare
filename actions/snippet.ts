@@ -577,4 +577,41 @@ export async function getFilterOptions() {
   }
 }
 
+// Get popular snippets based on likes
+export async function getPopularSnippets(limit: number = 5) {
+  try {
+    const snippets = await db.snippet.findMany({
+      where: {
+        isPublic: true,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            slug: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+      orderBy: {
+        likes: {
+          _count: 'desc',
+        },
+      },
+      take: limit,
+    });
+
+    return { success: true, snippets };
+  } catch (error) {
+    console.error("Error fetching popular snippets:", error);
+    return { error: "Failed to fetch popular snippets", snippets: [] };
+  }
+}
+
 // Fetch a snippet by ID

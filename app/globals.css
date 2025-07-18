@@ -57,6 +57,17 @@ body {
   scrollbar-color: rgba(155, 155, 155, 0.2) transparent;
 }
 
+/* Hide scrollbar completely for specific elements */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
