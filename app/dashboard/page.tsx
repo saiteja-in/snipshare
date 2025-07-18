@@ -26,14 +26,21 @@ export default async function DashboardPage() {
   }
 
   // Fetch user's snippets
-  const { snippets: allSnippets, error: snippetsError } = await getUserSnippets(user.id);
-  
+  const { snippets: allSnippets, error: snippetsError } = await getUserSnippets(
+    user.id
+  );
+
   // Fetch user's liked snippets
-  const { snippets: likedSnippets, error: likedError } = await getUserLikedSnippets(user.id);
+  const { snippets: likedSnippets, error: likedError } =
+    await getUserLikedSnippets(user.id);
 
   // Filter public and private snippets
-  const publicSnippets = allSnippets ? allSnippets.filter(snippet => snippet.isPublic) : [];
-  const privateSnippets = allSnippets ? allSnippets.filter(snippet => !snippet.isPublic) : [];
+  const publicSnippets = allSnippets
+    ? allSnippets.filter((snippet) => snippet.isPublic)
+    : [];
+  const privateSnippets = allSnippets
+    ? allSnippets.filter((snippet) => !snippet.isPublic)
+    : [];
 
   // Count snippets in each category
   const allCount = allSnippets?.length || 0;
@@ -49,7 +56,8 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Manage your code snippets, create new ones, or view your liked snippets.
+              Manage your code snippets, create new ones, or view your liked
+              snippets.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -84,7 +92,10 @@ export default async function DashboardPage() {
               value="public-snippets"
               className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
             >
-              <Badge variant="outline" className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-green-500/10 text-green-500 border-green-500/20 transition-opacity group-data-[state=inactive]:opacity-50">
+              <Badge
+                variant="outline"
+                className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-green-500/10 text-green-500 border-green-500/20 transition-opacity group-data-[state=inactive]:opacity-50"
+              >
                 {publicCount}
               </Badge>
               Public
@@ -93,7 +104,10 @@ export default async function DashboardPage() {
               value="private-snippets"
               className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
             >
-              <Badge variant="outline" className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-amber-500/10 text-amber-500 border-amber-500/20 transition-opacity group-data-[state=inactive]:opacity-50">
+              <Badge
+                variant="outline"
+                className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-amber-500/10 text-amber-500 border-amber-500/20 transition-opacity group-data-[state=inactive]:opacity-50"
+              >
                 {privateCount}
               </Badge>
               Private
@@ -102,7 +116,10 @@ export default async function DashboardPage() {
               value="liked-snippets"
               className="group data-[state=active]:bg-muted flex-1 flex-col p-3 text-xs data-[state=active]:shadow-none"
             >
-              <Badge variant="outline" className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-rose-500/10 text-rose-500 border-rose-500/20 transition-opacity group-data-[state=inactive]:opacity-50">
+              <Badge
+                variant="outline"
+                className="mb-1.5 min-w-5 px-1.5 py-0.5 bg-rose-500/10 text-rose-500 border-rose-500/20 transition-opacity group-data-[state=inactive]:opacity-50"
+              >
                 {likedCount}
               </Badge>
               Liked
@@ -114,7 +131,8 @@ export default async function DashboardPage() {
             <div className="mb-4">
               <h2 className="text-2xl font-semibold mb-2">All Snippets</h2>
               <p className="text-muted-foreground">
-                View and manage all your snippets. You can edit or delete any of your snippets from here.
+                View and manage all your snippets. You can edit or delete any of
+                your snippets from here.
               </p>
             </div>
             {snippetsError ? (
@@ -130,10 +148,7 @@ export default async function DashboardPage() {
             ) : allSnippets && allSnippets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {allSnippets.map((snippet) => (
-                  <DashboardSnippetCard 
-                    key={snippet.id}
-                    snippet={snippet}
-                  />
+                  <DashboardSnippetCard key={snippet.id} snippet={snippet} />
                 ))}
               </div>
             ) : (
@@ -145,7 +160,8 @@ export default async function DashboardPage() {
                 </EmptyPlaceholder.Icon>
                 <EmptyPlaceholder.Title>No snippets yet</EmptyPlaceholder.Title>
                 <EmptyPlaceholder.Description>
-                  You haven&apos;t created any code snippets yet. Start by creating a new one.
+                  You haven&apos;t created any code snippets yet. Start by
+                  creating a new one.
                 </EmptyPlaceholder.Description>
                 <Link href="/snippets/create">
                   <Button>Create a snippet</Button>
@@ -175,10 +191,7 @@ export default async function DashboardPage() {
             ) : publicSnippets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {publicSnippets.map((snippet) => (
-                  <DashboardSnippetCard 
-                    key={snippet.id}
-                    snippet={snippet}
-                  />
+                  <DashboardSnippetCard key={snippet.id} snippet={snippet} />
                 ))}
               </div>
             ) : (
@@ -188,7 +201,9 @@ export default async function DashboardPage() {
                     <Plus className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
                 </EmptyPlaceholder.Icon>
-                <EmptyPlaceholder.Title>No public snippets</EmptyPlaceholder.Title>
+                <EmptyPlaceholder.Title>
+                  No public snippets
+                </EmptyPlaceholder.Title>
                 <EmptyPlaceholder.Description>
                   You haven&apos;t created any public code snippets yet.
                 </EmptyPlaceholder.Description>
@@ -220,10 +235,7 @@ export default async function DashboardPage() {
             ) : privateSnippets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {privateSnippets.map((snippet) => (
-                  <DashboardSnippetCard 
-                    key={snippet.id}
-                    snippet={snippet}
-                  />
+                  <DashboardSnippetCard key={snippet.id} snippet={snippet} />
                 ))}
               </div>
             ) : (
@@ -233,7 +245,9 @@ export default async function DashboardPage() {
                     <Plus className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                   </div>
                 </EmptyPlaceholder.Icon>
-                <EmptyPlaceholder.Title>No private snippets</EmptyPlaceholder.Title>
+                <EmptyPlaceholder.Title>
+                  No private snippets
+                </EmptyPlaceholder.Title>
                 <EmptyPlaceholder.Description>
                   You haven&apos;t created any private code snippets yet.
                 </EmptyPlaceholder.Description>
@@ -265,10 +279,7 @@ export default async function DashboardPage() {
             ) : likedSnippets && likedSnippets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {likedSnippets.map((snippet) => (
-                  <DashboardSnippetCard 
-                    key={snippet.id}
-                    snippet={snippet}
-                  />
+                  <DashboardSnippetCard key={snippet.id} snippet={snippet} />
                 ))}
               </div>
             ) : (
@@ -278,9 +289,12 @@ export default async function DashboardPage() {
                     <Plus className="h-6 w-6 text-rose-600 dark:text-rose-400" />
                   </div>
                 </EmptyPlaceholder.Icon>
-                <EmptyPlaceholder.Title>No liked snippets</EmptyPlaceholder.Title>
+                <EmptyPlaceholder.Title>
+                  No liked snippets
+                </EmptyPlaceholder.Title>
                 <EmptyPlaceholder.Description>
-                  You haven&apos;t liked any snippets yet. Explore and find snippets you like.
+                  You haven&apos;t liked any snippets yet. Explore and find
+                  snippets you like.
                 </EmptyPlaceholder.Description>
                 <Link href="/explore">
                   <Button>Explore snippets</Button>

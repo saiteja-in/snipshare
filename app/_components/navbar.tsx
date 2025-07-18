@@ -1,6 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Lightbulb, User, LogOut, Plus, PlusIcon, Search, ChartBarStacked } from "lucide-react";
+import {
+  LayoutDashboard,
+  Lightbulb,
+  User,
+  LogOut,
+  PlusIcon,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/login-button";
 import { currentUser } from "@/lib/auth";
@@ -18,11 +25,15 @@ import {
 import { ModeToggle } from "./ModeToggle";
 import { ExtendedUser } from "@/schemas";
 
-// New navItems for Browse, My Snippets, Categories
+// Navigation items based on actual available routes
 const navItems = [
-  { href: "/snippets", label: "Browse", icon: Search },
-  { href: "/snippets/my", label: "My Snippets", requiresAuth: true, icon: Plus },
-  { href: "/categories", label: "Categories", icon: ChartBarStacked },
+  { href: "/snippets", label: "Browse Snippets", icon: Search },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    requiresAuth: true,
+    icon: LayoutDashboard,
+  },
 ];
 
 const NavBar = async () => {
@@ -46,21 +57,22 @@ const NavBar = async () => {
           </Link>
 
           <nav className="flex items-center gap-2">
-            {navItems.map((item) => (
-              (!item.requiresAuth || user) && (
-                <Button
-                  key={item.href}
-                  variant="ghost"
-                  asChild
-                  className="group flex items-center gap-2 transition-all duration-300 hover:bg-primary/10"
-                >
-                  <Link href={item.href}>
-                    <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                </Button>
-              )
-            ))}
+            {navItems.map(
+              (item) =>
+                (!item.requiresAuth || user) && (
+                  <Button
+                    key={item.href}
+                    variant="ghost"
+                    asChild
+                    className="group flex items-center gap-2 transition-all duration-300 hover:bg-primary/10"
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  </Button>
+                )
+            )}
           </nav>
         </div>
 
@@ -71,17 +83,17 @@ const NavBar = async () => {
               className="aspect-square gap-2 max-sm:p-0"
               asChild
             >
-                <Link
+              <Link
                 href="/snippets/create"
                 className="flex items-center gap-2 font-medium group max-sm:sr-only"
-                >
+              >
                 <PlusIcon
                   className="opacity-60 sm:-ms-1 transform transition-transform duration-300 group-hover:rotate-180"
                   size={16}
                   aria-hidden="true"
                 />
                 Create
-                </Link>
+              </Link>
             </Button>
           )}
 
@@ -92,8 +104,8 @@ const NavBar = async () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="relative h-10 w-10 rounded-full transition-transform duration-300 hover:scale-105 focus:ring-2 focus:ring-primary/50"
                 >
                   <Avatar className="h-10 w-10 border-2 border-primary/20">
@@ -108,14 +120,16 @@ const NavBar = async () => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                className="w-56 animate-in fade-in-0 zoom-in-95" 
-                align="end" 
+              <DropdownMenuContent
+                className="w-56 animate-in fade-in-0 zoom-in-95"
+                align="end"
                 forceMount
               >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {user.name}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user.email}
                     </p>
@@ -124,8 +138,8 @@ const NavBar = async () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
-                    <Link 
-                      href="/settings" 
+                    <Link
+                      href={`/${user.slug}`}
                       className="cursor-pointer transition-colors duration-300 hover:bg-primary/10"
                     >
                       <User className="mr-2 h-4 w-4" />
