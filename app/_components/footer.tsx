@@ -7,14 +7,14 @@ export function Footer() {
       <div className="container mx-auto flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
         <div className="flex flex-col items-center md:items-start">
           <Link href="/" className="text-xl font-bold text-primary">
-            App
+            SnipShare
           </Link>
           <p className="text-center text-sm text-muted-foreground md:text-left">
-            © 2024 App all rights reserved.
+            © 2025 Snipshare all rights reserved.
           </p>
         </div>
         <div className="flex flex-col items-center space-y-4 md:flex-row md:space-x-6 md:space-y-0">
-          <nav className="flex flex-wrap justify-center gap-4">
+          {/* <nav className="flex flex-wrap justify-center gap-4">
             <Link
               href="#privacy-policy"
               className="text-sm text-muted-foreground transition-colors hover:text-primary"
@@ -39,10 +39,10 @@ export function Footer() {
             >
               Contact Us
             </Link>
-          </nav>
+          </nav> */}
           <div className="flex space-x-4">
             <Link
-              href="https://github.com/"
+              href="https://github.com/saiteja-in/snipshare"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground transition-colors hover:text-primary"
@@ -58,7 +58,7 @@ export function Footer() {
               <Twitter className="h-5 w-5" />
             </Link>
             <Link
-              href="https://www.linkedin.com"
+              href="https://www.linkedin.com/in/saiteja-in"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground transition-colors hover:text-primary"
