@@ -792,201 +792,175 @@ export function SnippetCard({ snippet, isPreview = true }: SnippetCardProps) {
       ? nightOwl 
       : gruvboxLight;
 
-  return (
-    <Card className="group flex flex-col transition-colors hover:border-primary/50 w-full">
-      <CardHeader>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-start justify-between">
-            <Link
-              href={`/snippets/${snippet.id}`}
-              className="text-lg font-semibold hover:underline"
-            >
-              {snippet.title}
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Bookmark className="h-4 w-4" />
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {snippet.description}
-          </p>
-        </div>
-      </CardHeader>
-
-      {/* Code preview area with scrolling */}
-      {isPreview ? (
-        <div className="mx-4 mb-3">
-          <div className="relative h-[170px] rounded-md overflow-hidden bg-muted">
-           
-            <Link href={`/snippets/${snippet.id}`} className="block h-full">
-              <div className="h-full overflow-auto thin-scrollbar bg-background">
-                <SyntaxHighlighter
-                  language={snippet.language?.toLowerCase() || "plaintext"}
-                  style={syntaxTheme}
-                  customStyle={{
-                    margin: 0,
-                    padding: "12px",
-                    height: "100%",
-                    fontSize: "0.7rem",
-                    background: "",
-                    visibility: mounted ? "visible" : "hidden", // Hide until mounted
-                  }}
-                  className="bg-background"
-                  wrapLines={false}
-                  showLineNumbers={false}
+      return (
+        <Card className="group flex flex-col transition-colors hover:border-primary/50 w-full h-full">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-start justify-between gap-2">
+                <Link
+                  href={`/snippets/${snippet.id}`}
+                  className="text-base md:text-lg font-semibold hover:underline line-clamp-2 flex-1"
                 >
-                  {snippet.code}
-                </SyntaxHighlighter>
+                  {snippet.title}
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 md:h-8 md:w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                >
+                  <Bookmark className="h-3 w-3 md:h-4 md:w-4" />
+                </Button>
               </div>
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <CardContent className="px-0">
-          <div className="relative h-[350px] rounded-md overflow-hidden bg-muted mx-4">
-            <div className="absolute top-0 right-0 z-10 p-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                onClick={copyCode}
-              >
-                {copied ? (
-                  <>
-                    <Check size={14} className="mr-1" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} className="mr-1" />
-                    Copy
-                  </>
-                )}
-              </Button>
+              <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
+                {snippet.description}
+              </p>
             </div>
-            <div className="h-full overflow-auto thin-scrollbar">
-              <SyntaxHighlighter
-                language={snippet.language?.toLowerCase() || "plaintext"}
-                style={syntaxTheme}
-                customStyle={{
-                  margin: 0,
-                  padding: "16px",
-                  minHeight: "100%",
-                  fontSize: "0.85rem",
-                  backgroundColor: "transparent",
-                  visibility: mounted ? "visible" : "hidden", // Hide until mounted
-                }}
-                wrapLines={true}
-                showLineNumbers={true}
-              >
-                {snippet.code}
-              </SyntaxHighlighter>
+          </CardHeader>
+    
+          {/* Code preview area - mobile responsive */}
+          {isPreview ? (
+            <div className="mx-3 md:mx-4 mb-3">
+              <div className="relative h-[120px] md:h-[170px] rounded-md overflow-hidden bg-muted">
+                <Link href={`/snippets/${snippet.id}`} className="block h-full">
+                  <div className="h-full overflow-auto thin-scrollbar bg-background">
+                    <SyntaxHighlighter
+                      language={snippet.language?.toLowerCase() || "plaintext"}
+                      style={syntaxTheme}
+                      customStyle={{
+                        margin: 0,
+                        padding: window.innerWidth < 768 ? "8px" : "12px",
+                        height: "100%",
+                        fontSize: window.innerWidth < 768 ? "0.6rem" : "0.7rem",
+                        background: "",
+                        visibility: mounted ? "visible" : "hidden",
+                      }}
+                      className="bg-background"
+                      wrapLines={false}
+                      showLineNumbers={false}
+                    >
+                      {snippet.code}
+                    </SyntaxHighlighter>
+                  </div>
+                </Link>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      )}
-
-      <CardContent className={isPreview ? "pt-0" : ""}>
-        <div className="flex flex-wrap gap-2">
-          <Badge
-            variant="default"
-            className="bg-primary/10 text-primary hover:bg-primary/20"
-          >
-            {snippet.language}
-          </Badge>
-          {snippet.tags.slice(0, 3).map((tag: string) => (
-            <Badge key={tag} variant="outline" className="hover:bg-muted">
-              {tag}
-            </Badge>
-          ))}
-          {snippet.tags.length > 3 && (
-            <Badge variant="outline" className="hover:bg-muted">
-              +{snippet.tags.length - 3} more
-            </Badge>
+          ) : (
+            // Full view remains the same but with responsive padding
+            <CardContent className="px-3 md:px-4">
+              <div className="relative h-[250px] md:h-[350px] rounded-md overflow-hidden bg-muted">
+                <div className="absolute top-0 right-0 z-10 p-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 md:h-8 text-xs bg-background/80 backdrop-blur-sm hover:bg-background"
+                    onClick={copyCode}
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={12} className="mr-1" />
+                        <span className="hidden sm:inline">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} className="mr-1" />
+                        <span className="hidden sm:inline">Copy</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="h-full overflow-auto thin-scrollbar">
+                  <SyntaxHighlighter
+                    language={snippet.language?.toLowerCase() || "plaintext"}
+                    style={syntaxTheme}
+                    customStyle={{
+                      margin: 0,
+                      padding: window.innerWidth < 768 ? "12px" : "16px",
+                      minHeight: "100%",
+                      fontSize: window.innerWidth < 768 ? "0.75rem" : "0.85rem",
+                      backgroundColor: "transparent",
+                      visibility: mounted ? "visible" : "hidden",
+                    }}
+                    wrapLines={true}
+                    showLineNumbers={!window.matchMedia('(max-width: 768px)').matches}
+                  >
+                    {snippet.code}
+                  </SyntaxHighlighter>
+                </div>
+              </div>
+            </CardContent>
           )}
-        </div>
-      </CardContent>
-
-      <CardFooter className="mt-auto pt-0">
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link href={`/${snippet.author.slug}`}>
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage
-                        src={snippet.author.image || ""}
-                        alt={snippet.author.name || ""}
-                      />
-                      <AvatarFallback className="text-sm font-medium">
-                        {snippet.author.name 
-                          ? (snippet.author.name.split(' ').length > 1 
-                              ? `${snippet.author.name.split(' ')[0][0]}${snippet.author.name.split(' ')[1][0]}`.toUpperCase()
-                              : snippet.author.name[0].toUpperCase())
-                          : (snippet.author.slug 
-                              ? (snippet.author.slug.split('-').length > 1
-                                  ? `${snippet.author.slug.split('-')[0][0]}${snippet.author.slug.split('-')[1][0]}`.toUpperCase()
-                                  : snippet.author.slug[0].toUpperCase())
-                              : '?')}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>{snippet.author.name || snippet.author.slug}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <span className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              {timeAgo}
-            </span>
-            
-            {!isPreview && (
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1" title="Views">
-                  <Eye size={14} />
-                  {snippet.views}
-                </span>
-                <span className="flex items-center gap-1" title="Likes">
-                  <Heart size={14} />
-                  {snippet._count.likes}
-                </span>
-                <span className="flex items-center gap-1" title="Comments">
-                  <MessageSquare size={14} />
-                  {snippet._count.comments}
+    
+          <CardContent className={`${isPreview ? "pt-0" : ""} p-3 md:p-4 px-4 md:px-6`}>
+            <div className="flex flex-wrap gap-1.5 md:gap-2">
+              <Badge
+                variant="default"
+                className="bg-primary/10 text-primary hover:bg-primary/20 text-xs"
+              >
+                {snippet.language}
+              </Badge>
+              {snippet.tags.slice(0, window.innerWidth < 768 ? 2 : 3).map((tag: string) => (
+                <Badge key={tag} variant="outline" className="hover:bg-muted text-xs">
+                  {tag}
+                </Badge>
+              ))}
+              {snippet.tags.length > (window.innerWidth < 768 ? 2 : 3) && (
+                <Badge variant="outline" className="hover:bg-muted text-xs">
+                  +{snippet.tags.length - (window.innerWidth < 768 ? 2 : 3)} more
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+    
+          <CardFooter className="mt-auto pt-0 p-3 md:p-4 px-4 md:px-6">
+            <div className="flex w-full items-center justify-between gap-2">
+              <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={`/${snippet.author.slug}`} className="shrink-0">
+                        <Avatar className="h-5 w-5 md:h-6 md:w-6">
+                          <AvatarImage
+                            src={snippet.author.image || ""}
+                            alt={snippet.author.name || ""}
+                          />
+                          <AvatarFallback className="text-xs font-medium">
+                            {snippet.author.name 
+                              ? (snippet.author.name.split(' ').length > 1 
+                                  ? `${snippet.author.name.split(' ')[0][0]}${snippet.author.name.split(' ')[1][0]}`.toUpperCase()
+                                  : snippet.author.name[0].toUpperCase())
+                              : (snippet.author.slug 
+                                  ? (snippet.author.slug.split('-').length > 1
+                                      ? `${snippet.author.slug.split('-')[0][0]}${snippet.author.slug.split('-')[1][0]}`.toUpperCase()
+                                      : snippet.author.slug[0].toUpperCase())
+                                  : '?')}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>{snippet.author.name || snippet.author.slug}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <span className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground truncate">
+                  <Clock className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{timeAgo}</span>
                 </span>
               </div>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {!isPreview && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8" 
-                onClick={shareSnippet}
-              >
-                <Share2 size={14} className="mr-1" />
-                Share
-              </Button>
-            )}
-            <Link href={`/snippets/${snippet.id}`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="group-hover:bg-primary/10"
-              >
-                View Snippet
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardFooter>
+              
+              <div className="flex items-center gap-1 md:gap-2 shrink-0">
+                <Link href={`/snippets/${snippet.id}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="group-hover:bg-primary/10 h-7 md:h-8 px-2 md:px-3 text-xs md:text-sm"
+                  >
+                    <span className="hidden sm:inline">View</span>
+                    <span className="sm:hidden">•••</span>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardFooter>
       
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
         <DialogContent className="sm:max-w-md">
