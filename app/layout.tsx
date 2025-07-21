@@ -8,6 +8,7 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import NavBar from "./_components/navbar";
 import { Toaster } from "sonner";
+import { Reggae_One } from "next/font/google";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -19,7 +20,11 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
-
+const reggaeOne = Reggae_One({
+  variable: "--font-reggae-one",
+  subsets: ["latin"],
+  weight: "400", 
+});
 export const metadata: Metadata = {
   title: "Snip Share",
   description: "Share code snippets easily with developers around the world",
@@ -35,7 +40,7 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${reggaeOne.variable} ${geistMono.variable} antialiased`}
         >
           <ThemeProvider
             attribute="class"

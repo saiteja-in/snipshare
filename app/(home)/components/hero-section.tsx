@@ -188,9 +188,9 @@ export default function HeroSection({ user }: HeroSectionProps) {
       </div>
 
       {/* Floating elements for visual interest */}
-      <div className="absolute top-1/4 left-10 w-2 h-2 bg-primary/30 rounded-full animate-pulse hidden lg:block" />
+      {/* <div className="absolute top-1/4 left-10 w-2 h-2 bg-primary/30 rounded-full animate-pulse hidden lg:block" />
       <div className="absolute top-1/3 right-20 w-1 h-1 bg-primary/40 rounded-full animate-pulse hidden lg:block" />
-      <div className="absolute bottom-1/4 left-1/4 w-1.5 h-1.5 bg-primary/20 rounded-full animate-pulse hidden lg:block" />
+      <div className="absolute bottom-1/4 left-1/4 w-1.5 h-1.5 bg-primary/20 rounded-full animate-pulse hidden lg:block" /> */}
     </div>
   );
 }

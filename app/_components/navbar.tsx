@@ -1,17 +1,20 @@
+// app/components/navbar.tsx
+
 import React from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
-  Lightbulb,
   User,
   LogOut,
   PlusIcon,
   Search,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/auth/login-button";
 import { currentUser } from "@/lib/auth";
 import { logout } from "@/actions/logout";
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -22,77 +25,120 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ModeToggle } from "./ModeToggle";
 import { ExtendedUser } from "@/schemas";
 
-// Navigation items based on actual available routes
+// Define navigation items
 const navItems = [
   { href: "/snippets", label: "Browse Snippets", icon: Search },
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    requiresAuth: true,
-    icon: LayoutDashboard,
-  },
+  { href: "/dashboard", label: "Dashboard", requiresAuth: true, icon: LayoutDashboard },
 ];
 
 const NavBar = async () => {
   const user = (await currentUser()) as ExtendedUser | undefined;
 
   return (
-    <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
-        <div className="flex items-center gap-6">
-          <Link
-            href="/"
-            className="group flex items-center gap-2 text-xl font-bold text-foreground transition-all duration-300 hover:scale-105"
-          >
-            <div className="relative">
-              <Lightbulb className="h-6 w-6 text-yellow-500 transition-all duration-300 group-hover:text-yellow-400" />
-              <div className="absolute -inset-1 animate-pulse rounded-full bg-yellow-500/20 group-hover:bg-yellow-400/30" />
-            </div>
-            <span className="hidden bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent md:block">
-              Snipshare
-            </span>
-          </Link>
+    <header className="border-b px-4 md:px-6 sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between gap-4">
+        {/* Left section: Brand and Nav Items */}
+        <div className="flex items-center gap-2">
+          {/* Mobile menu (popover) */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className="group size-8 md:hidden"
+                variant="ghost"
+                size="icon"
+              >
+                <svg
+                  width={16}
+                  height={16}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-menu"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </Button>
+            </PopoverTrigger>
 
-          <nav className="flex items-center gap-2">
-            {navItems.map(
-              (item) =>
-                (!item.requiresAuth || user) && (
-                  <Button
-                    key={item.href}
-                    variant="ghost"
-                    asChild
-                    className="group flex items-center gap-2 transition-all duration-300 hover:bg-primary/10"
-                  >
-                    <Link href={item.href}>
-                      <item.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  </Button>
-                )
-            )}
-          </nav>
+            <PopoverContent align="start" className="w-36 p-1 md:hidden">
+              <NavigationMenu className="max-w-none *:w-full">
+                <NavigationMenuList className="flex-col items-start gap-0">
+                  {navItems.map(
+                    (item) =>
+                      (!item.requiresAuth || user) && (
+                        <NavigationMenuItem key={item.href} className="w-full">
+                          <NavigationMenuLink
+                            href={item.href}
+                            className="py-1.5 flex items-center gap-2"
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </NavigationMenuLink>
+                        </NavigationMenuItem>
+                      )
+                  )}
+                </NavigationMenuList>
+              </NavigationMenu>
+            </PopoverContent>
+          </Popover>
+
+          {/* Desktop nav + logo */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-xl font-bold font-reggae-one">
+              SnipShare
+            </Link>
+
+            <NavigationMenu className="max-md:hidden">
+              <NavigationMenuList className="gap-2">
+                {navItems.map(
+                  (item) =>
+                    (!item.requiresAuth || user) && (
+                      <NavigationMenuItem key={item.href}>
+                        <NavigationMenuLink
+                          href={item.href}
+                          className="text-muted-foreground hover:text-primary py-1.5 font-medium flex items-center gap-2"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                    )
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Right section: Create Button / Auth / Avatar / Mode Toggle */}
+        <div className="flex items-center gap-2">
           {user && (
-            <Button
-              variant="outline"
-              className="aspect-square gap-2 max-sm:p-0"
-              asChild
-            >
+            <Button variant="outline" size="sm" asChild>
               <Link
                 href="/snippets/create"
-                className="flex items-center gap-2 font-medium group max-sm:sr-only"
+                className="flex items-center gap-2 font-medium group"
               >
                 <PlusIcon
-                  className="opacity-60 sm:-ms-1 transform transition-transform duration-300 group-hover:rotate-180"
+                  className="opacity-60 transition-transform duration-300 group-hover:rotate-180"
                   size={16}
-                  aria-hidden="true"
                 />
-                Create
+                <span className="max-sm:hidden">Create</span>
               </Link>
             </Button>
           )}
@@ -106,71 +152,75 @@ const NavBar = async () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative h-10 w-10 rounded-full transition-transform duration-300 hover:scale-105 focus:ring-2 focus:ring-primary/50"
+                  className="h-8 w-8 rounded-full hover:scale-105 transition-transform"
+                  size="icon"
                 >
-                  <Avatar className="h-10 w-10 border-2 border-primary/20">
+                  <Avatar className="h-8 w-8 border-2 border-primary/20">
                     <AvatarImage
                       src={user.image || ""}
                       alt={user.name || "User avatar"}
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-primary/10 text-sm font-semibold">
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold">
                       {user.name?.substring(0, 2).toUpperCase() ?? "AA"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56 animate-in fade-in-0 zoom-in-95"
-                align="end"
-                forceMount
-              >
-                <DropdownMenuLabel className="font-normal">
+
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
                       {user.name}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
+
                 <DropdownMenuSeparator />
+
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
                     <Link
                       href={`/${user.slug}`}
-                      className="cursor-pointer transition-colors duration-300 hover:bg-primary/10"
+                      className="cursor-pointer hover:bg-primary/10"
                     >
                       <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
+                      Profile
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer text-red-600 transition-colors duration-300 hover:bg-red-100 focus:bg-red-100 dark:hover:bg-red-900/50 dark:focus:bg-red-900/50"
-                  asChild
-                >
+
+                <DropdownMenuItem asChild className="text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50">
                   <form action={logout} className="w-full">
                     <button type="submit" className="flex w-full items-center">
                       <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
+                      Log out
                     </button>
                   </form>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <LoginButton>
-              <Button className="font-medium transition-transform duration-300 hover:scale-105">
-                Sign In
-              </Button>
-            </LoginButton>
+            <>
+              <LoginButton>
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              </LoginButton>
+              <LoginButton>
+                <Button size="sm">Get Started</Button>
+              </LoginButton>
+            </>
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

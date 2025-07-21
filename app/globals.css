@@ -172,3 +172,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.font-reggae-one {
+  font-family: var(--font-reggae-one);
+}
