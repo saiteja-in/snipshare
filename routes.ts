@@ -4,7 +4,8 @@
  */
 export const publicRoutes = [
   "/",
-  "/auth/new-verification"
+  "/auth/new-verification",
+  "/snippets",
 ];
 export const protectedRoutes = [
   "/settings",

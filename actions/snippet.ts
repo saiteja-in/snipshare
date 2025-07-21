@@ -8,13 +8,15 @@ import { revalidatePath } from "next/cache";
 import { ExtendedUser } from "@/schemas";
 
 // Create a new snippet
-export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>) {
+export async function createSnippet(
+  values: z.infer<typeof CreateSnippetSchema>
+) {
   try {
     // Validate the input data
     const validatedFields = CreateSnippetSchema.safeParse(values);
     if (!validatedFields.success) {
-      return { 
-        error: "Invalid fields. Please check your input." 
+      return {
+        error: "Invalid fields. Please check your input.",
       };
     }
 
@@ -41,10 +43,10 @@ export async function createSnippet(values: z.infer<typeof CreateSnippetSchema>)
 
     // Revalidate the appropriate paths
     revalidatePath("/snippets");
-    
-    return { 
-      success: true, 
-      snippet
+
+    return {
+      success: true,
+      snippet,
     };
   } catch (error) {
     console.error("Error creating snippet:", error);
@@ -110,7 +112,7 @@ export async function toggleLikeSnippet(snippetId: string) {
       },
     });
 
-    let action: 'liked' | 'unliked';
+    let action: "liked" | "unliked";
 
     if (existingLike) {
       // If like exists, remove it (unlike)
@@ -122,7 +124,7 @@ export async function toggleLikeSnippet(snippetId: string) {
           },
         },
       });
-      action = 'unliked';
+      action = "unliked";
     } else {
       // If like doesn't exist, create it (like)
       await db.like.create({
@@ -131,18 +133,18 @@ export async function toggleLikeSnippet(snippetId: string) {
           snippetId,
         },
       });
-      action = 'liked';
+      action = "liked";
     }
 
     // Revalidate paths to update like counts
     revalidatePath(`/snippets/${snippetId}`);
     revalidatePath(`/dashboard`);
     revalidatePath(`/${user.slug}`);
-    revalidatePath('/explore');
-    
-    return { 
+    revalidatePath("/explore");
+
+    return {
       success: true,
-      action
+      action,
     };
   } catch (error) {
     console.error("Error toggling like:", error);
@@ -177,9 +179,6 @@ export async function getSnippetById(id: string) {
     }
 
     const user = (await currentUser()) as ExtendedUser | undefined;
-    if (!user) {
-      return { error: "Unauthorized. Please sign in." };
-    }
 
     const snippet = await db.snippet.findUnique({
       where: {
@@ -209,35 +208,42 @@ export async function getSnippetById(id: string) {
     }
 
     // Check if user is authorized to view this snippet
-    if (!snippet.isPublic && snippet.authorId !== user.id) {
-      return { error: "You do not have permission to view this snippet", snippet: null };
+    // If snippet is private, only the author can view it
+    if (!snippet.isPublic && (!user || snippet.authorId !== user.id)) {
+      return {
+        error: "You do not have permission to view this snippet",
+        snippet: null,
+      };
     }
 
-    // Check if the current user has liked this snippet
-    const userLike = await db.like.findUnique({
-      where: {
-        userId_snippetId: {
-          userId: user.id,
-          snippetId: id,
+    // Check if the current user has liked this snippet (only if user is authenticated)
+    let userHasLiked = false;
+    if (user?.id) {
+      const userLike = await db.like.findUnique({
+        where: {
+          userId_snippetId: {
+            userId: user.id,
+            snippetId: id,
+          },
         },
-      },
-    });
+      });
+      userHasLiked = !!userLike;
+    }
 
     // Ensure we return the snippet with all necessary properties including userHasLiked
-    return { 
-      success: true, 
+    return {
+      success: true,
       snippet: {
         ...snippet,
         authorId: snippet.authorId, // Ensure authorId is included
-        userHasLiked: !!userLike, // Add boolean indicating if user has liked
-      } 
+        userHasLiked, // Add boolean indicating if user has liked (false if not authenticated)
+      },
     };
   } catch (error) {
     console.error("Error fetching snippet:", error);
     return { error: "Failed to fetch snippet", snippet: null };
   }
 }
-
 
 export async function getUserBySlug(slug: string) {
   try {
@@ -300,7 +306,7 @@ export async function getUserSnippets(userId: string) {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -338,11 +344,11 @@ export async function getUserLikedSnippets(userId: string) {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
-    const snippets = likes.map(like => like.snippet);
+    const snippets = likes.map((like) => like.snippet);
     return { success: true, snippets };
   } catch (error) {
     console.error("Error fetching liked snippets:", error);
@@ -363,18 +369,20 @@ const UpdateSnippetSchema = z.object({
 });
 
 // Update a snippet
-export async function updateSnippet(values: z.infer<typeof UpdateSnippetSchema>) {
+export async function updateSnippet(
+  values: z.infer<typeof UpdateSnippetSchema>
+) {
   try {
     // Validate the input data
     const validatedFields = UpdateSnippetSchema.safeParse(values);
     if (!validatedFields.success) {
-      return { 
-        error: "Invalid fields. Please check your input." 
+      return {
+        error: "Invalid fields. Please check your input.",
       };
     }
 
     // Get the current user
-     const user = (await currentUser()) as ExtendedUser | undefined;
+    const user = (await currentUser()) as ExtendedUser | undefined;
     if (!user?.id) {
       return { error: "Unauthorized. Please sign in." };
     }
@@ -382,7 +390,7 @@ export async function updateSnippet(values: z.infer<typeof UpdateSnippetSchema>)
     // Find the snippet to check if the user is the author
     const snippet = await db.snippet.findUnique({
       where: { id: validatedFields.data.id },
-      select: { authorId: true }
+      select: { authorId: true },
     });
 
     if (!snippet) {
@@ -413,10 +421,10 @@ export async function updateSnippet(values: z.infer<typeof UpdateSnippetSchema>)
     revalidatePath("/dashboard");
     revalidatePath(`/snippets/${updatedSnippet.id}`);
     revalidatePath(`/${user.slug}`);
-    
-    return { 
-      success: true, 
-      snippet: updatedSnippet
+
+    return {
+      success: true,
+      snippet: updatedSnippet,
     };
   } catch (error) {
     console.error("Error updating snippet:", error);
@@ -432,7 +440,7 @@ export async function deleteSnippet(id: string) {
     }
 
     // Get the current user
-     const user = (await currentUser()) as ExtendedUser | undefined;
+    const user = (await currentUser()) as ExtendedUser | undefined;
     if (!user?.id) {
       return { error: "Unauthorized. Please sign in." };
     }
@@ -440,7 +448,7 @@ export async function deleteSnippet(id: string) {
     // Find the snippet to check if the user is the author
     const snippet = await db.snippet.findUnique({
       where: { id },
-      select: { authorId: true }
+      select: { authorId: true },
     });
 
     if (!snippet) {
@@ -460,17 +468,15 @@ export async function deleteSnippet(id: string) {
     // Revalidate the appropriate paths
     revalidatePath("/dashboard");
     revalidatePath(`/${user.slug}`);
-    
-    return { 
-      success: true 
+
+    return {
+      success: true,
     };
   } catch (error) {
     console.error("Error deleting snippet:", error);
     return { error: "Failed to delete snippet" };
   }
 }
-
-
 
 // Get all public snippets with filters
 export async function getPublicSnippets(filters?: {
@@ -499,8 +505,8 @@ export async function getPublicSnippets(filters?: {
 
     if (filters?.search) {
       where.OR = [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { description: { contains: filters.search, mode: "insensitive" } },
         { tags: { has: filters.search } },
       ];
     }
@@ -525,7 +531,7 @@ export async function getPublicSnippets(filters?: {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -543,36 +549,42 @@ export async function getFilterOptions() {
       db.snippet.findMany({
         where: { isPublic: true },
         select: { language: true },
-        distinct: ['language'],
+        distinct: ["language"],
       }),
       db.snippet.findMany({
-        where: { 
+        where: {
           isPublic: true,
-          framework: { not: null }
+          framework: { not: null },
         },
         select: { framework: true },
-        distinct: ['framework'],
+        distinct: ["framework"],
       }),
       db.snippet.findMany({
         where: { isPublic: true },
         select: { category: true },
-        distinct: ['category'],
+        distinct: ["category"],
       }),
     ]);
 
     return {
       success: true,
       options: {
-        languages: languages.map(s => s.language).filter((lang): lang is string => Boolean(lang)),
-        frameworks: frameworks.map(s => s.framework).filter((fw): fw is string => Boolean(fw)),
-        categories: categories.map(s => s.category).filter((cat): cat is string => Boolean(cat)),
-      }
+        languages: languages
+          .map((s) => s.language)
+          .filter((lang): lang is string => Boolean(lang)),
+        frameworks: frameworks
+          .map((s) => s.framework)
+          .filter((fw): fw is string => Boolean(fw)),
+        categories: categories
+          .map((s) => s.category)
+          .filter((cat): cat is string => Boolean(cat)),
+      },
     };
   } catch (error) {
     console.error("Error fetching filter options:", error);
-    return { 
+    return {
       error: "Failed to fetch filter options",
-      options: { languages: [], frameworks: [], categories: [] }
+      options: { languages: [], frameworks: [], categories: [] },
     };
   }
 }
@@ -601,7 +613,7 @@ export async function getPopularSnippets(limit: number = 5) {
       },
       orderBy: {
         likes: {
-          _count: 'desc',
+          _count: "desc",
         },
       },
       take: limit,

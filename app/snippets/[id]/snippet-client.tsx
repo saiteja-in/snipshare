@@ -22,6 +22,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import Link from "next/link";
 import { toggleLikeSnippet } from "@/actions/snippet";
 import { useRouter } from "next/navigation";
@@ -32,12 +38,14 @@ interface SnippetClientProps {
   snippet: any;
   userHasLiked?: boolean;
   popularSnippets?: any[];
+  isAuthenticated?: boolean;
 }
 
 export default function SnippetClient({
   snippet,
   userHasLiked = false,
   popularSnippets = [],
+  isAuthenticated = false,
 }: SnippetClientProps) {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
@@ -80,6 +88,11 @@ export default function SnippetClient({
   };
 
   const handleLikeToggle = async () => {
+    // If user is not authenticated, do nothing (button should be disabled)
+    if (!isAuthenticated) {
+      return;
+    }
+
     // Prevent multiple rapid clicks
     if (isLikeProcessing) return;
 
@@ -101,12 +114,6 @@ export default function SnippetClient({
         newLikeState ? prevCount + 1 : Math.max(0, prevCount - 1)
       );
 
-      // Subtle toast for immediate feedback
-      // toast.success(newLikeState ? "Liked!" : "Removed like", {
-      //   duration: 1500,
-      //   position: 'bottom-right'
-      // });
-
       // Make API call in the background
       const result = await toggleLikeSnippet(snippet.id);
 
@@ -121,10 +128,7 @@ export default function SnippetClient({
         return;
       }
 
-      // No need for additional UI updates on success since we already did them optimistically
-
       // Refresh the page data in the background for consistency
-      // Adding a small delay to ensure UI animations complete first
       setTimeout(() => router.refresh(), 300);
     } catch (error) {
       console.error("Error toggling like:", error);
@@ -207,42 +211,54 @@ export default function SnippetClient({
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {/* Enhanced Like Button with Animation */}
-                  <Button
-                    variant={isLiked ? "default" : "outline"}
-                    size="sm"
-                    onClick={handleLikeToggle}
-                    className={cn(
-                      isLiked ? "bg-rose-600 hover:bg-rose-700" : "",
-                      "relative overflow-hidden transition-all",
-                      animateLike && "animate-pulse"
-                    )}
-                    disabled={isLikeProcessing}
-                  >
-                    <Heart
-                      className={cn(
-                        "mr-1 h-4 w-4 transition-all duration-300",
-                        isLiked ? "fill-white" : "",
-                        animateLike && "scale-125"
-                      )}
-                      strokeWidth={isLiked ? 0 : 2}
-                    />
-                    <span
-                      className={cn(
-                        "transition-all duration-300",
-                        animateLike && "font-semibold"
-                      )}
-                    >
-                      {likeCount > 0 && likeCount}
-                    </span>
+                  {/* Enhanced Like Button with Animation and Tooltip */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={isLiked ? "default" : "outline"}
+                          size="sm"
+                          onClick={handleLikeToggle}
+                          className={cn(
+                            isLiked ? "bg-rose-600 hover:bg-rose-700" : "",
+                            "relative overflow-hidden transition-all",
+                            animateLike && "animate-pulse",
+                            !isAuthenticated && "cursor-not-allowed opacity-60"
+                          )}
+                          disabled={isLikeProcessing || !isAuthenticated}
+                        >
+                          <Heart
+                            className={cn(
+                              "mr-1 h-4 w-4 transition-all duration-300",
+                              isLiked ? "fill-white" : "",
+                              animateLike && "scale-125"
+                            )}
+                            strokeWidth={isLiked ? 0 : 2}
+                          />
+                          <span
+                            className={cn(
+                              "transition-all duration-300",
+                              animateLike && "font-semibold"
+                            )}
+                          >
+                            {likeCount > 0 && likeCount}
+                          </span>
 
-                    {/* Visual feedback ripple effect when clicked */}
-                    {animateLike && (
-                      <span className="absolute inset-0 flex items-center justify-center">
-                        <span className="animate-ping absolute h-full w-full rounded-full bg-rose-400 opacity-30"></span>
-                      </span>
-                    )}
-                  </Button>
+                          {/* Visual feedback ripple effect when clicked */}
+                          {animateLike && (
+                            <span className="absolute inset-0 flex items-center justify-center">
+                              <span className="animate-ping absolute h-full w-full rounded-full bg-rose-400 opacity-30"></span>
+                            </span>
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      {!isAuthenticated && (
+                        <TooltipContent>
+                          <p>Sign in to like this snippet</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
 
                   <Button variant="outline" size="sm" onClick={shareSnippet}>
                     <Share2 className="mr-2 h-4 w-4" />
